@@ -1,0 +1,82 @@
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-badge.pending,
+.status-badge.sin-enviar {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.enviado {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.received,
+.status-badge.ingresado {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.paid {
+    background-color: #ecfccb;
+    color: #3f6212;
+    border: 1px solid #3f6212;
+}
+
+.status-badge.cancelled {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.success-btn {
+    color: #059669;
+}
+
+.success-btn:hover {
+    background-color: #d1fae5;
+}
+
+/* Form Layout */
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.items-input-row {
+    align-items: flex-end;
+    background-color: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.items-section {
+    margin-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1rem;
+}
+
+.small-table th,
+.small-table td {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.order-details p {
+    margin-bottom: 0.5rem;
+}
+
+.order-details ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+}

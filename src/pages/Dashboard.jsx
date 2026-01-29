@@ -9,12 +9,13 @@ export default function Dashboard() {
     const [branchStatus, setBranchStatus] = useState([]);
     const [kpis, setKpis] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [selectedBranch, setSelectedBranch] = useState("Todas");
 
     useEffect(() => {
         fetchKpis();
         const interval = setInterval(fetchKpis, 60000); // Refresh every minute
         return () => clearInterval(interval);
-    }, [user]);
+    }, [user, selectedBranch]);
 
     useEffect(() => {
         if (user?.role === 'Admin') {
@@ -26,7 +27,11 @@ export default function Dashboard() {
 
     const fetchKpis = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/dashboard/kpis`);
+            let url = `${import.meta.env.VITE_API_URL}/api/dashboard/kpis`;
+            if (user?.role === 'Admin' && selectedBranch !== "Todas") {
+                url += `?branchName=${encodeURIComponent(selectedBranch)}`;
+            }
+            const response = await axios.get(url);
             setKpis(response.data);
             setLoading(false);
         } catch (err) {
@@ -62,9 +67,36 @@ export default function Dashboard() {
 
     return (
         <div className="container">
-            <div className="page-header">
-                <h1>Inicio</h1>
-                <p>Bienvenido, {user?.username}</p>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div>
+                    <h1>Inicio</h1>
+                    <p>Bienvenido, {user?.username}</p>
+                </div>
+                {/* Branch Selector for Admin */}
+                {user?.role === 'Admin' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569' }}>Filtrar por:</span>
+                        <select
+                            style={{
+                                padding: '0.5rem 1rem',
+                                borderRadius: '0.5rem',
+                                border: '1px solid #cbd5e1',
+                                background: 'white',
+                                color: '#334155',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                outline: 'none'
+                            }}
+                            value={selectedBranch}
+                            onChange={(e) => setSelectedBranch(e.target.value)}
+                        >
+                            <option value="Todas">Todas las Sucursales</option>
+                            {branchStatus.map((branch, index) => (
+                                <option key={index} value={branch.branchName}>{branch.branchName}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
 
             {/* KPI Cards */}
@@ -72,7 +104,7 @@ export default function Dashboard() {
                 <>
                     <div style={{ marginBottom: '1.5rem' }}>
                         <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#475569' }}>
-                            {kpis.activeShift ? `Métricas del Turno Actual` : 'Métricas del Día'}
+                            {selectedBranch !== "Todas" ? `Métricas - ${selectedBranch}` : (kpis.activeShift ? `Métricas del Turno Actual` : 'Métricas Globales del Día')}
                         </h2>
                         {kpis.activeShift && (
                             <p style={{ fontSize: '0.875rem', color: '#64748b' }}>

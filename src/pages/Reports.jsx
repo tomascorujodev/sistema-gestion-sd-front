@@ -21,7 +21,7 @@ export default function Reports() {
     const fetchReports = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`http://localhost:5027/api/dailyreports?page=${currentPage}&pageSize=${pageSize}`);
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/dailyreports?page=${currentPage}&pageSize=${pageSize}`);
             setReports(response.data.data || response.data);
             if (response.data.pagination) {
                 setTotalPages(response.data.pagination.totalPages);

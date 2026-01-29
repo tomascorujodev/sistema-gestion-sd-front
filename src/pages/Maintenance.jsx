@@ -27,8 +27,8 @@ export default function Maintenance() {
     const fetchTasks = async () => {
         try {
             const [tasksRes, suppliesRes] = await Promise.all([
-                axios.get('http://localhost:5027/api/maintenancetasks'),
-                axios.get('http://localhost:5027/api/maintenancetasks/supplies')
+                axios.get(`${import.meta.env.VITE_API_URL}/api/maintenancetasks`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/maintenancetasks/supplies`)
             ]);
             setTasks(tasksRes.data);
             setSupplyRequests(suppliesRes.data);
@@ -41,7 +41,7 @@ export default function Maintenance() {
     const handleAdd = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5027/api/maintenancetasks', {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenancetasks`, {
                 description: newTask,
                 frequency,
                 isActive: true,
@@ -56,7 +56,7 @@ export default function Maintenance() {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:5027/api/maintenancetasks/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/maintenancetasks/${id}`);
             setTasks(tasks.filter(t => t.id !== id));
         } catch (err) {
             alert('Error al eliminar la tarea');
@@ -65,7 +65,7 @@ export default function Maintenance() {
 
     const handleFulfillSupply = async (id) => {
         try {
-            await axios.put(`http://localhost:5027/api/maintenancetasks/supplies/${id}/fulfill`);
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/maintenancetasks/supplies/${id}/fulfill`);
             setSupplyRequests(supplyRequests.map(r => r.id === id ? { ...r, isFulfilled: true } : r));
         } catch (err) {
             alert('Error al marcar como cumplido');
@@ -75,7 +75,7 @@ export default function Maintenance() {
     const handleDeleteSupply = async (id) => {
         if (!window.confirm('¿Eliminar esta solicitud?')) return;
         try {
-            await axios.delete(`http://localhost:5027/api/maintenancetasks/supplies/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/maintenancetasks/supplies/${id}`);
             setSupplyRequests(supplyRequests.filter(r => r.id !== id));
         } catch (err) {
             alert('Error al eliminar solicitud');
@@ -87,7 +87,7 @@ export default function Maintenance() {
     return (
         <div className="container">
             <div className="page-header">
-                <h1>Tareas de Mantenimiento (Admin)</h1>
+                <h1>Tareas de Mantenimiento</h1>
             </div>
 
             <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
@@ -101,7 +101,7 @@ export default function Maintenance() {
                             onChange={(e) => setNewTask(e.target.value)}
                             required
                             className="input-field"
-                            placeholder="ej. Limpiar jaulas"
+                            placeholder="Ejemplo: Limpiar vidrios"
                         />
                     </div>
                     <div style={{ width: '150px' }}>

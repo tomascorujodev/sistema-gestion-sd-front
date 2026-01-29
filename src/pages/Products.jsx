@@ -30,7 +30,7 @@ export default function Products() {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/products/categories');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products/categories`);
             setCategories(response.data);
         } catch (err) {
             console.error('Error fetching categories:', err);
@@ -40,7 +40,7 @@ export default function Products() {
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5027/api/products', {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
                 params: {
                     page,
                     pageSize,
@@ -72,7 +72,7 @@ export default function Products() {
 
         try {
             setLoading(true);
-            await axios.post('http://localhost:5027/api/products/import', formData, {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/products/import`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -114,10 +114,10 @@ export default function Products() {
     const handleSave = async (productData) => {
         try {
             if (editingProduct) {
-                await axios.put(`http://localhost:5027/api/products/${editingProduct.id}`, { ...productData, id: editingProduct.id });
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/products/${editingProduct.id}`, { ...productData, id: editingProduct.id });
                 setProducts(products.map(p => p.id === editingProduct.id ? { ...productData, id: editingProduct.id } : p));
             } else {
-                await axios.post('http://localhost:5027/api/products', productData);
+                await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, productData);
             }
             fetchProducts(); // Refresh list
             fetchCategories(); // Refresh categories in case new one added
@@ -133,7 +133,7 @@ export default function Products() {
 
     const handleConfirmDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5027/api/products/${deleteModal.id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/products/${deleteModal.id}`);
             fetchProducts();
             setDeleteModal({ show: false, id: null });
         } catch (err) {

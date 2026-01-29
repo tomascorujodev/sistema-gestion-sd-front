@@ -44,10 +44,10 @@ export default function Orders() {
     const fetchData = async () => {
         try {
             const [ordersRes, suppliersRes, productsRes, categoriesRes] = await Promise.all([
-                axios.get('http://localhost:5027/api/supplierorders'),
-                axios.get('http://localhost:5027/api/suppliers'),
-                axios.get('http://localhost:5027/api/products?pageSize=1000'),
-                axios.get('http://localhost:5027/api/products/categories')
+                axios.get(`${import.meta.env.VITE_API_URL}/api/supplierorders`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/suppliers`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/products?pageSize=1000`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/products/categories`)
             ]);
             setOrders(ordersRes.data);
             setSuppliers(suppliersRes.data);
@@ -77,7 +77,6 @@ export default function Orders() {
             ...newItem,
             productName: product.name,
             productId: parseInt(newItem.productId),
-            quantity: parseFloat(newItem.quantity),
             quantity: parseFloat(newItem.quantity),
             unitPrice: parseFloat(newItem.unitPrice),
             salePrice: product.price // Save original sale price
@@ -114,7 +113,7 @@ export default function Orders() {
                 }))
             };
 
-            await axios.post('http://localhost:5027/api/supplierorders', payload);
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/supplierorders`, payload);
             setIsModalOpen(false);
             setNewOrder({ supplierId: '', branch: 'Sucursal Principal', paymentMethod: 'Efectivo', items: [] });
             fetchData();
@@ -152,14 +151,14 @@ export default function Orders() {
         try {
             const { id, action } = statusModal;
             if (action === 'send') {
-                await axios.put(`http://localhost:5027/api/supplierorders/${id}/status`, '"Enviado"', {
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/supplierorders/${id}/status`, '"Enviado"', {
                     headers: { 'Content-Type': 'application/json' }
                 });
             } else if (action === 'receive') {
-                await axios.put(`http://localhost:5027/api/supplierorders/${id}/mark-received`);
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/supplierorders/${id}/mark-received`);
             } else if (action === 'pay') {
                 // For simplicity, using a dummy invoice number or prompting for it could be better
-                await axios.put(`http://localhost:5027/api/supplierorders/${id}/mark-paid`, '"REF-PAGO"', {
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/supplierorders/${id}/mark-paid`, '"REF-PAGO"', {
                     headers: { 'Content-Type': 'application/json' }
                 });
             }

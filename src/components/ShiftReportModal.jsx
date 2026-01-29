@@ -31,7 +31,7 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
         setLoading(true);
         try {
             // 1. Fetch Maintenance Tasks
-            const tasksRes = await axios.get('http://localhost:5027/api/maintenancetasks');
+            const tasksRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenancetasks`);
             const activeTasks = tasksRes.data.filter(t => t.isActive);
 
             // Filter tasks by branch
@@ -50,7 +50,7 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
             setCheckedTasks(initialChecks);
 
             // 2. Fetch Cash Register Data
-            const registerRes = await axios.get('http://localhost:5027/api/cashregister');
+            const registerRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/cashregister`);
             const today = new Date().toISOString().split('T')[0];
             const register = registerRes.data.find(r => r.date.startsWith(today));
             setCashRegisterData(register);
@@ -155,7 +155,7 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
                 stockCheck: stockCheck || ''
             };
 
-            await axios.post('http://localhost:5027/api/dailyreports', reportData);
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/dailyreports`, reportData);
 
             // Automatically copy to clipboard before closing
             navigator.clipboard.writeText(reportText);

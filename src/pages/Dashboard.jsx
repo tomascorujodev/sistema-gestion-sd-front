@@ -26,7 +26,7 @@ export default function Dashboard() {
 
     const fetchKpis = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/dashboard/kpis');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/dashboard/kpis`);
             setKpis(response.data);
             setLoading(false);
         } catch (err) {
@@ -37,7 +37,7 @@ export default function Dashboard() {
 
     const fetchBranchStatus = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/shifts/dashboard');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/shifts/dashboard`);
             setBranchStatus(response.data);
         } catch (err) {
             console.error('Error fetching branch status:', err);

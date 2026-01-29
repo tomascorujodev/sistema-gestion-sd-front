@@ -35,7 +35,7 @@ export default function Branches() {
     const fetchUsers = async () => {
         try {
             const token = sessionStorage.getItem('token');
-            const response = await axios.get('http://localhost:5027/api/users', {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(response.data);
@@ -50,7 +50,7 @@ export default function Branches() {
     const handleAddUser = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5027/api/auth/register', newUser);
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, newUser);
             setNotification({ show: true, title: 'Éxito', message: 'Usuario creado correctamente', isError: false });
             setIsAddModalOpen(false);
             setNewUser({ username: '', password: '', role: 'Operator', branch: 'Sucursal Principal' });
@@ -70,7 +70,7 @@ export default function Branches() {
 
         try {
             const token = sessionStorage.getItem('token');
-            await axios.put(`http://localhost:5027/api/users/${selectedUser.id}/password`,
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${selectedUser.id}/password`,
                 JSON.stringify(passwordData.newPassword),
                 {
                     headers: {

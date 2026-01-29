@@ -27,7 +27,7 @@ export default function CashRegister() {
 
     const fetchLastRegister = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/cashregister/last');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cashregister/last`);
             if (response.status === 200 && response.data) {
                 // Set initial balance to last bill count (Arqueo de billetes)
                 setFormData(prev => ({
@@ -42,7 +42,7 @@ export default function CashRegister() {
 
     const fetchSummary = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/customerorders/summary/today');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/customerorders/summary/today`);
             setSummary(response.data);
         } catch (err) {
             console.error(err);
@@ -51,7 +51,7 @@ export default function CashRegister() {
 
     const fetchEmployees = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/employees`);
             setEmployees(response.data);
         } catch (err) {
             console.error(err);
@@ -95,7 +95,7 @@ export default function CashRegister() {
                 shiftId: activeShift ? activeShift.id : null
             };
 
-            await axios.post('http://localhost:5027/api/cashregister', data);
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/cashregister`, data);
 
             // Reset form
             setFormData({

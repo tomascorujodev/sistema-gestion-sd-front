@@ -45,7 +45,7 @@ export default function CustomerOrders() {
 
     const fetchOrders = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/customerorders');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/customerorders`);
             setOrders(response.data);
             setLoading(false);
         } catch (err) {
@@ -55,7 +55,7 @@ export default function CustomerOrders() {
 
     const fetchEmployees = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/employees`);
             setEmployees(response.data);
         } catch (err) {
             console.error(err);
@@ -70,7 +70,7 @@ export default function CustomerOrders() {
                 amount: parseFloat(formData.amount) || 0,
                 employeeInChargeId: formData.employeeInChargeId ? parseInt(formData.employeeInChargeId) : null
             };
-            const response = await axios.post('http://localhost:5027/api/customerorders', data);
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/customerorders`, data);
             setOrders([response.data, ...orders]);
             setIsModalOpen(false);
             setFormData({
@@ -92,7 +92,7 @@ export default function CustomerOrders() {
 
     const handleStatusChange = async (id, newStatus) => {
         try {
-            await axios.put(`http://localhost:5027/api/customerorders/${id}/status`, `"${newStatus}"`, {
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/customerorders/${id}/status`, `"${newStatus}"`, {
                 headers: { 'Content-Type': 'application/json' }
             });
             setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o));
@@ -109,7 +109,7 @@ export default function CustomerOrders() {
     const handleMarkAsPaid = async () => {
         try {
             setPaymentModal(prev => ({ ...prev, status: 'loading' }));
-            await axios.post(`http://localhost:5027/api/customerorders/${paymentModal.order.id}/pay`, {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/customerorders/${paymentModal.order.id}/pay`, {
                 paymentMethod: paymentModal.paymentMethod
             });
 

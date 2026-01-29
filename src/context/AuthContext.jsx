@@ -60,10 +60,10 @@ export const AuthProvider = ({ children }) => {
                 setCheckingShift(true);
                 try {
                     // First, trigger a cleanup of stale shifts
-                    await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5027/api'}/shifts/check-auto-close`);
+                    await axios.post(`${import.meta.env.VITE_API_URL}/api/shifts/check-auto-close`);
 
                     // Then get active shifts for this branch
-                    const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5027/api'}/shifts/current-branch`);
+                    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/shifts/current-branch`);
                     if (response.status === 200 && response.data && response.data.length > 0) {
                         const savedEmployee = sessionStorage.getItem('employee');
                         let shift = null;
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }) => {
         const checkAutoClose = async () => {
             if (!user) return; // Need auth to call this
             try {
-                const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5027/api'}/shifts/check-auto-close`);
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/shifts/check-auto-close`);
                 const closedShifts = response.data.closedShifts || [];
 
                 if (employee && activeShift) {
@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5027/api'}/auth/login`, { username, password });
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, { username, password });
             const { token, role, username: userUsername, branch } = response.data;
 
             const userData = { username: userUsername, role, branch };
@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }) => {
     const selectEmployee = async (employeeId, employeeName) => {
         try {
             // Try to start shift
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5027/api'}/shifts/start`, parseInt(employeeId), {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/shifts/start`, parseInt(employeeId), {
                 headers: { 'Content-Type': 'application/json' }
             });
 
@@ -160,7 +160,7 @@ export const AuthProvider = ({ children }) => {
             // If shift already active (400), fetch it
             if (error.response && error.response.status === 400) {
                 try {
-                    const activeResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5027/api'}/shifts/active/${employeeId}`);
+                    const activeResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/shifts/active/${employeeId}`);
                     const employeeData = { id: employeeId, name: employeeName };
                     setEmployee(employeeData);
                     setActiveShift(activeResponse.data);
@@ -181,7 +181,7 @@ export const AuthProvider = ({ children }) => {
         if (!employee) return false;
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5027/api'}/shifts/end`, parseInt(employee.id), {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/shifts/end`, parseInt(employee.id), {
                 headers: { 'Content-Type': 'application/json' }
             });
 

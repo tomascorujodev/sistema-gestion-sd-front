@@ -36,7 +36,7 @@ export default function AdminDashboard() {
     const fetchCashRegisters = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5027/api/cashregister', {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cashregister`, {
                 params: { page, pageSize, status: filterStatus }
             });
             if (response.data.items) {
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
 
     const fetchEmployees = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/employees`);
             setEmployees(response.data);
         } catch (err) {
             console.error(err);
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
     const handleDelete = async (id) => {
         if (window.confirm('¿Está seguro de eliminar este registro?')) {
             try {
-                await axios.delete(`http://localhost:5027/api/cashregister/${id}`);
+                await axios.delete(`${import.meta.env.VITE_API_URL}/api/cashregister/${id}`);
                 setCashRegisters(cashRegisters.filter(c => c.id !== id));
             } catch (err) {
                 alert('Failed to delete entry');
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
                 id: editingId
             };
 
-            await axios.put(`http://localhost:5027/api/cashregister/${editingId}`, data);
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/cashregister/${editingId}`, data);
 
             setSuccessModal({
                 show: true,

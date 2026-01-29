@@ -22,7 +22,7 @@ export default function EmployeeSelector({ onSelect, onCancel }) {
 
     const fetchEmployees = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/employees`);
             setEmployees(response.data);
         } catch (err) {
             console.error(err);
@@ -31,7 +31,7 @@ export default function EmployeeSelector({ onSelect, onCancel }) {
 
     const fetchActiveBranchShift = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/shifts/current-branch');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/shifts/current-branch`);
             if (response.data && response.data.length > 0) {
                 // Since we now enforce 1 shift per branch, take the first one
                 setActiveBranchShift(response.data[0]);

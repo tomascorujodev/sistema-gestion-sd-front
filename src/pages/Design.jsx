@@ -25,13 +25,11 @@ export default function Design() {
 
     const fetchConfig = async () => {
         try {
-            const res = await fetch('http://localhost:5027/api/site-config/admin');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/admin`);
             if (res.ok) {
                 const data = await res.json();
                 setConfig({
                     primaryColor: data.primaryColor || '#E11D48',
-                    secondaryColor: data.secondaryColor || '#000000',
-                    cloudinaryCloudName: data.cloudinaryCloudName || '',
                     secondaryColor: data.secondaryColor || '#000000',
                     cloudinaryCloudName: data.cloudinaryCloudName || '',
                     cloudinaryUploadPreset: data.cloudinaryUploadPreset || '',
@@ -45,7 +43,7 @@ export default function Design() {
 
     const fetchImages = async () => {
         try {
-            const res = await fetch('http://localhost:5027/api/site-config/images');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/images`);
             if (res.ok) {
                 const data = await res.json();
                 setCarouselImages(data);
@@ -81,7 +79,7 @@ export default function Design() {
         e.preventDefault();
         setSaving(true);
         try {
-            const res = await fetch('http://localhost:5027/api/site-config', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
@@ -110,7 +108,7 @@ export default function Design() {
                 order: carouselImages.length
             };
 
-            const res = await fetch('http://localhost:5027/api/site-config/images', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/images`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newImage)
@@ -129,7 +127,7 @@ export default function Design() {
     const handleDeleteImage = async (id) => {
         if (!window.confirm('¿Estás seguro de eliminar esta imagen?')) return;
         try {
-            const res = await fetch(`http://localhost:5027/api/site-config/images/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/images/${id}`, {
                 method: 'DELETE'
             });
             if (res.ok) {
@@ -149,7 +147,7 @@ export default function Design() {
         setCarouselImages(carouselImages.map(img => img.id === id ? updatedImage : img));
 
         try {
-            await fetch(`http://localhost:5027/api/site-config/images/${id}`, {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/images/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedImage)

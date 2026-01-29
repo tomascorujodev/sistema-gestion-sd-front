@@ -34,11 +34,11 @@ export default function CashRegisterLog() {
         try {
             setLoading(true);
             const [expRes, catRes, accRes, authRes, suppRes] = await Promise.all([
-                axios.get('http://localhost:5027/api/expenses'),
-                axios.get('http://localhost:5027/api/referenceentities?type=Category'),
-                axios.get('http://localhost:5027/api/referenceentities?type=Account'),
-                axios.get('http://localhost:5027/api/referenceentities?type=Authorizer'),
-                axios.get('http://localhost:5027/api/suppliers')
+                axios.get(`${import.meta.env.VITE_API_URL}/api/expenses`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/referenceentities?type=Category`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/referenceentities?type=Account`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/referenceentities?type=Authorizer`),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/suppliers`)
             ]);
             setExpenses(expRes.data);
             setCategories(catRes.data);
@@ -65,7 +65,7 @@ export default function CashRegisterLog() {
                 supplierId: formData.supplierId ? parseInt(formData.supplierId) : null,
             };
 
-            await axios.post('http://localhost:5027/api/expenses', expenseData);
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/expenses`, expenseData);
 
             fetchData();
             setIsModalOpen(false);
@@ -86,7 +86,7 @@ export default function CashRegisterLog() {
 
     const handleDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5027/api/expenses/${deleteModal.id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/expenses/${deleteModal.id}`);
             setExpenses(expenses.filter(e => e.id !== deleteModal.id));
             setDeleteModal({ show: false, id: null });
         } catch (err) {

@@ -27,7 +27,7 @@ export default function MaintenanceOperator() {
 
     const fetchTasks = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/maintenancetasks');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/maintenancetasks`);
             setTasks(response.data.filter(t => t.isActive));
             setLoading(false);
         } catch (err) {
@@ -43,7 +43,7 @@ export default function MaintenanceOperator() {
         }
 
         try {
-            await axios.post('http://localhost:5027/api/maintenancetasks/supplies', {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/maintenancetasks/supplies`, {
                 itemName: request.item,
                 details: request.item === 'Otro' ? request.details : null,
                 branch: request.branch,
@@ -71,7 +71,7 @@ export default function MaintenanceOperator() {
     return (
         <div className="container">
             <div className="page-header">
-                <h1>Mantenimiento (Operador)</h1>
+                <h1>Mantenimiento</h1>
             </div>
 
             <ConfirmationModal

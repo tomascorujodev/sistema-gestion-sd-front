@@ -44,7 +44,7 @@ export default function EmployeeManagement() {
             const start = new Date(shiftFormData.startTime).toISOString();
             const end = new Date(shiftFormData.endTime).toISOString();
 
-            await axios.put(`http://localhost:5027/api/shifts/${editingShiftId}`, {
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/shifts/${editingShiftId}`, {
                 startTime: start,
                 endTime: end,
                 autoClosed: shiftFormData.autoClosed
@@ -67,7 +67,7 @@ export default function EmployeeManagement() {
 
     const fetchEmployees = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/employees');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/employees`);
             setEmployees(response.data);
             setLoading(false);
         } catch (err) {
@@ -77,7 +77,7 @@ export default function EmployeeManagement() {
 
     const fetchPayroll = async (id) => {
         try {
-            const response = await axios.get(`http://localhost:5027/api/employees/${id}/payroll`);
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/employees/${id}/payroll`);
             setPayroll(response.data);
             setSelectedEmployee(id);
         } catch (err) {
@@ -110,38 +110,38 @@ export default function EmployeeManagement() {
             };
 
             if (editingEmployee) {
-                await axios.put(`http://localhost:5027/api/employees/${editingEmployee.id}`, { ...data, id: editingEmployee.id });
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/employees/${editingEmployee.id}`, { ...data, id: editingEmployee.id });
                 setEmployees(employees.map(e => e.id === editingEmployee.id ? { ...data, id: editingEmployee.id } : e));
             } else {
-                const response = await axios.post('http://localhost:5027/api/employees', data);
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/employees`, data);
                 setEmployees([...employees, response.data]);
             }
             setIsModalOpen(false);
         } catch (err) {
-            alert('Failed to save employee');
+            alert('Error al guardar el empleado');
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to deactivate this employee?')) {
+        if (window.confirm('¿Estás seguro de que quieres desactivar a este empleado?')) {
             try {
-                await axios.delete(`http://localhost:5027/api/employees/${id}`);
+                await axios.delete(`${import.meta.env.VITE_API_URL}/api/employees/${id}`);
                 setEmployees(employees.filter(e => e.id !== id));
             } catch (err) {
-                alert('Failed to delete employee');
+                alert('Error al eliminar el empleado');
             }
         }
     };
 
-    if (loading) return <div className="loading-container">Loading employees...</div>;
+    if (loading) return <div className="loading-container">Cargando empleados...</div>;
 
     return (
         <div className="container">
             <div className="page-header">
-                <h1>Employee Management</h1>
+                <h1>Gestión de Empleados</h1>
                 <button className="btn btn-primary" onClick={handleAdd}>
                     <Plus size={16} style={{ marginRight: '0.5rem' }} />
-                    Add Employee
+                    Agregar Empleado
                 </button>
             </div>
 
@@ -163,10 +163,10 @@ export default function EmployeeManagement() {
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Position</th>
-                                <th>Hourly Rate</th>
-                                <th>Actions</th>
+                                <th>Nombre</th>
+                                <th>Posición</th>
+                                <th>Valor hora</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -269,7 +269,7 @@ export default function EmployeeManagement() {
                                             onClick={async () => {
                                                 if (window.confirm('¿Forzar el cierre de este turno ahora?')) {
                                                     try {
-                                                        await axios.put(`http://localhost:5027/api/shifts/${shift.id}`, {
+                                                        await axios.put(`${import.meta.env.VITE_API_URL}/api/shifts/${shift.id}`, {
                                                             startTime: shift.startTime,
                                                             endTime: new Date().toISOString(),
                                                             autoClosed: true
@@ -308,12 +308,12 @@ export default function EmployeeManagement() {
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h2>{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h2>
+                            <h2>{editingEmployee ? 'Editar Empleado' : 'Agregar Empleado'}</h2>
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleSave} className="modal-form">
                             <div className="form-group">
-                                <label>Name</label>
+                                <label>Nombre</label>
                                 <input
                                     type="text"
                                     value={formData.name}
@@ -323,7 +323,7 @@ export default function EmployeeManagement() {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Position</label>
+                                <label>Posición</label>
                                 <input
                                     type="text"
                                     value={formData.position}
@@ -333,7 +333,7 @@ export default function EmployeeManagement() {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Hourly Rate</label>
+                                <label>Valor hora</label>
                                 <input
                                     type="number"
                                     value={formData.hourlyRate}
@@ -344,8 +344,8 @@ export default function EmployeeManagement() {
                                 />
                             </div>
                             <div className="modal-footer">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">Cancel</button>
-                                <button type="submit" className="btn btn-primary">Save</button>
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">Cancelar</button>
+                                <button type="submit" className="btn btn-primary">Guardar</button>
                             </div>
                         </form>
                     </div>

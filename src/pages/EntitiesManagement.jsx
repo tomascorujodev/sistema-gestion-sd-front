@@ -60,7 +60,7 @@ function SuppliersTab() {
 
     const fetchSuppliers = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/suppliers');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/suppliers`);
             setSuppliers(response.data);
             setLoading(false);
         } catch (err) {
@@ -92,10 +92,10 @@ function SuppliersTab() {
         e.preventDefault();
         try {
             if (editingSupplier) {
-                await axios.put(`http://localhost:5027/api/suppliers/${editingSupplier.id}`, { ...formData, id: editingSupplier.id });
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/suppliers/${editingSupplier.id}`, { ...formData, id: editingSupplier.id });
                 setSuppliers(suppliers.map(s => s.id === editingSupplier.id ? { ...formData, id: editingSupplier.id } : s));
             } else {
-                const response = await axios.post('http://localhost:5027/api/suppliers', formData);
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/suppliers`, formData);
                 setSuppliers([...suppliers, response.data]);
             }
             setIsModalOpen(false);
@@ -110,7 +110,7 @@ function SuppliersTab() {
 
     const handleConfirmDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5027/api/suppliers/${deleteModal.id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/suppliers/${deleteModal.id}`);
             setSuppliers(suppliers.filter(s => s.id !== deleteModal.id));
             setDeleteModal({ show: false, id: null });
         } catch (err) {
@@ -272,7 +272,7 @@ function GenericEntityTab({ type, title }) {
     const fetchEntities = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5027/api/referenceentities', {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/referenceentities`, {
                 params: { type }
             });
             setEntities(response.data);
@@ -300,13 +300,13 @@ function GenericEntityTab({ type, title }) {
         e.preventDefault();
         try {
             if (editingEntity) {
-                await axios.put(`http://localhost:5027/api/referenceentities/${editingEntity.id}`, {
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/referenceentities/${editingEntity.id}`, {
                     ...editingEntity,
                     name: formData.name
                 });
                 setEntities(entities.map(e => e.id === editingEntity.id ? { ...e, name: formData.name } : e));
             } else {
-                const response = await axios.post('http://localhost:5027/api/referenceentities', {
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/referenceentities`, {
                     name: formData.name,
                     type,
                     isActive: true
@@ -326,7 +326,7 @@ function GenericEntityTab({ type, title }) {
 
     const handleConfirmDelete = async () => {
         try {
-            await axios.delete(`http://localhost:5027/api/referenceentities/${deleteModal.id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/referenceentities/${deleteModal.id}`);
             setEntities(entities.filter(e => e.id !== deleteModal.id));
             setDeleteModal({ show: false, id: null });
         } catch (err) {

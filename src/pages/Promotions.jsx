@@ -31,7 +31,7 @@ export default function Promotions() {
 
     const fetchPromotions = async () => {
         try {
-            const response = await axios.get('http://localhost:5027/api/promotions');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/promotions`);
             setPromotions(response.data);
             setLoading(false);
         } catch (err) {
@@ -50,11 +50,11 @@ export default function Promotions() {
             };
 
             if (editingPromo) {
-                await axios.put(`http://localhost:5027/api/promotions/${editingPromo.id}`, { ...payload, id: editingPromo.id });
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/promotions/${editingPromo.id}`, { ...payload, id: editingPromo.id });
                 setPromotions(promotions.map(p => p.id === editingPromo.id ? { ...payload, id: editingPromo.id } : p));
                 alert('Promoción actualizada correctamente');
             } else {
-                const response = await axios.post('http://localhost:5027/api/promotions', payload);
+                const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/promotions`, payload);
                 setPromotions([...promotions, response.data]);
                 alert('Promoción creada correctamente');
             }
@@ -101,7 +101,7 @@ export default function Promotions() {
     const handleDelete = async (id) => {
         if (!window.confirm('¿Está seguro de eliminar esta promoción?')) return;
         try {
-            await axios.delete(`http://localhost:5027/api/promotions/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/promotions/${id}`);
             setPromotions(promotions.filter(p => p.id !== id));
         } catch (err) {
             alert('Error al eliminar la promoción');

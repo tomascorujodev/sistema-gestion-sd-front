@@ -11,6 +11,7 @@ export default function EmployeeManagement() {
     const [formData, setFormData] = useState({ name: '', position: '', hourlyRate: '' });
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [payroll, setPayroll] = useState(null);
+    const [activeShifts, setActiveShifts] = useState([]);
 
     // Shift Editing State
     const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
@@ -61,9 +62,21 @@ export default function EmployeeManagement() {
         }
     };
 
+
+
     useEffect(() => {
         fetchEmployees();
+        fetchActiveShifts();
     }, []);
+
+    const fetchActiveShifts = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/shifts/current-branch`);
+            setActiveShifts(response.data);
+        } catch (err) {
+            console.error("Error fetching active shifts:", err);
+        }
+    };
 
     const fetchEmployees = async () => {
         try {
@@ -146,17 +159,32 @@ export default function EmployeeManagement() {
             </div>
 
             {/* Active Shifts Overview */}
-            <div style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: '#475569' }}>Turnos Activos Actuales</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
-                    {employees.filter(e => payroll?.shifts?.some(s => s.employeeId === e.id && !s.isClosed)).length === 0 && (
-                        <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No hay turnos activos en este momento.</p>
-                    )}
-                    {/* We need a better way to get ALL active shifts without fetching all payrolls. 
-                        For now, let's just make sure active shifts in payroll have a 'Force Close' button.
-                    */}
+            {/* Active Shifts Overview */}
+            {activeShifts.length > 0 && (
+                <div style={{ marginBottom: '2rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                        {activeShifts.map(shift => (
+                            <div key={shift.id} style={{
+                                backgroundColor: 'white',
+                                padding: '1rem',
+                                borderRadius: '0.5rem',
+                                borderLeft: '4px solid #10b981',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <div>
+                                    <div style={{ fontWeight: 600, color: '#1f2937' }}>{shift.employee?.name || 'Empleado Desconocido'}</div>
+                                    <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                                        Inicio: {new Date(shift.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: selectedEmployee ? '1fr 1fr' : '1fr', gap: '2rem' }}>
                 <div className="table-container">
@@ -213,33 +241,30 @@ export default function EmployeeManagement() {
 
                 {payroll && (
                     <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                        <h3 style={{ marginTop: 0 }}>Payroll - {payroll.name}</h3>
+                        <h3 style={{ marginTop: 0 }}>Horario - {payroll.name}</h3>
                         <div style={{ marginBottom: '1.5rem' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                 <div>
-                                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Hours</div>
+                                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Horas Totales</div>
                                     <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>{payroll.totalHours.toFixed(2)}</div>
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Hourly Rate</div>
+                                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Valor por hora</div>
                                     <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>${payroll.hourlyRate.toFixed(2)}</div>
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Earned</div>
+                                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Ganado</div>
                                     <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#059669' }}>${payroll.totalEarned.toFixed(2)}</div>
                                 </div>
-                                <div>
-                                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Advances</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#dc2626' }}>${payroll.totalAdvances.toFixed(2)}</div>
-                                </div>
+
                             </div>
                             <div style={{ padding: '1rem', backgroundColor: '#eef2ff', borderRadius: '0.5rem', textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Balance to Pay</div>
+                                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Balance a pagar</div>
                                 <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>${payroll.balance.toFixed(2)}</div>
                             </div>
                         </div>
 
-                        <h4>Recent Shifts</h4>
+                        <h4>Turnos recientes</h4>
                         <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '1rem' }}>
                             {payroll.shifts.map((shift) => (
                                 <div key={shift.id} style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -288,18 +313,7 @@ export default function EmployeeManagement() {
                             ))}
                         </div>
 
-                        <h4>Recent Advances</h4>
-                        <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                            {payroll.advances.map((advance) => (
-                                <div key={advance.id} style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb', fontSize: '0.875rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <span>{new Date(advance.date).toLocaleDateString()}</span>
-                                        <span style={{ color: '#dc2626' }}>${advance.amount.toFixed(2)}</span>
-                                    </div>
-                                    <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>{advance.reason}</div>
-                                </div>
-                            ))}
-                        </div>
+
                     </div>
                 )}
             </div>
@@ -398,6 +412,8 @@ export default function EmployeeManagement() {
                     </div>
                 </div>
             )}
+
+
         </div>
     );
 }

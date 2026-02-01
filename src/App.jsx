@@ -9,6 +9,7 @@ import Orders from './pages/Orders';
 import Reports from './pages/Reports';
 import Maintenance from './pages/Maintenance';
 import Promotions from './pages/Promotions';
+import Coupons from './pages/Coupons';
 import AdminDashboard from './pages/AdminDashboard';
 import Design from './pages/Design';
 import EmployeeManagement from './pages/EmployeeManagement';
@@ -18,6 +19,8 @@ import CustomerOrders from './pages/CustomerOrders';
 import Branches from './pages/Branches';
 import Dashboard from './pages/Dashboard';
 import MaintenanceOperator from './pages/MaintenanceOperator';
+import MiVetShopSync from './pages/MiVetShopSync';
+import Shortages from './pages/Shortages';
 
 function App() {
   return (
@@ -33,10 +36,13 @@ function App() {
               <Route path="/orders" element={<Orders />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/promotions" element={<Promotions />} />
+              <Route path="/coupons" element={<Coupons />} />
               <Route path="/cash-register" element={<CashRegister />} />
               <Route path="/customer-orders" element={<CustomerOrders />} />
               <Route path="/customer-orders" element={<CustomerOrders />} />
               <Route path="/maintenance-operator" element={<MaintenanceOperator />} />
+              <Route path="/shortages" element={<Shortages />} />
+              <Route path="/mi-vet-shop" element={<MiVetShopSync />} />
             </Route>
           </Route>
 

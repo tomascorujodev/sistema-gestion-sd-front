@@ -10,7 +10,9 @@ export default function Design() {
         secondaryColor: '#000000',
         cloudinaryCloudName: '',
         cloudinaryUploadPreset: '',
-        isStoreEnabled: true
+        cloudinaryUploadPreset: '',
+        isStoreEnabled: true,
+        theme: 'Dark'
     });
     const [carouselImages, setCarouselImages] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -33,7 +35,9 @@ export default function Design() {
                     secondaryColor: data.secondaryColor || '#000000',
                     cloudinaryCloudName: data.cloudinaryCloudName || '',
                     cloudinaryUploadPreset: data.cloudinaryUploadPreset || '',
-                    isStoreEnabled: data.isStoreEnabled !== undefined ? data.isStoreEnabled : true
+                    cloudinaryUploadPreset: data.cloudinaryUploadPreset || '',
+                    isStoreEnabled: data.isStoreEnabled !== undefined ? data.isStoreEnabled : true,
+                    theme: data.theme || 'Dark'
                 });
             }
         } catch (error) {
@@ -230,43 +234,22 @@ export default function Design() {
                         </div>
 
                         <div className="input-group">
-                            <label className="input-label">Color Principal</label>
-                            <div className="color-picker-group">
-                                <input
-                                    type="color"
-                                    name="primaryColor"
-                                    value={config.primaryColor}
-                                    onChange={handleConfigChange}
-                                    className="color-input"
-                                />
-                                <input
-                                    type="text"
-                                    name="primaryColor"
-                                    value={config.primaryColor}
-                                    onChange={handleConfigChange}
-                                    className="input-field"
-                                />
-                            </div>
+                            <label className="input-label">Tema del Sitio</label>
+                            <select
+                                name="theme"
+                                value={config.theme || 'Dark'}
+                                onChange={handleConfigChange}
+                                className="input-field"
+                                style={{ width: '100%', padding: '0.75rem' }}
+                            >
+                                <option value="Dark">Modo Oscuro (Default)</option>
+                                <option value="Light">Modo Luz (Blanco/Bordó)</option>
+                                <option value="Christmas">Modo Navidad</option>
+                                <option value="Anniversary">Modo Aniversario (Dorado)</option>
+                            </select>
                         </div>
-                        <div className="input-group">
-                            <label className="input-label">Color Secundario</label>
-                            <div className="color-picker-group">
-                                <input
-                                    type="color"
-                                    name="secondaryColor"
-                                    value={config.secondaryColor}
-                                    onChange={handleConfigChange}
-                                    className="color-input"
-                                />
-                                <input
-                                    type="text"
-                                    name="secondaryColor"
-                                    value={config.secondaryColor}
-                                    onChange={handleConfigChange}
-                                    className="input-field"
-                                />
-                            </div>
-                        </div>
+
+
 
                         <button type="submit" className="btn btn-primary" disabled={saving} style={{ width: '100%', marginTop: '1rem' }}>
                             {saving ? 'Guardando...' : 'Guardar Cambios'}

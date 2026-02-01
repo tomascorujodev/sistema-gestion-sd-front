@@ -168,6 +168,31 @@ export default function AdminDashboard() {
         setPage(1);
     };
 
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/cashregister/${id}/status`, `"${newStatus}"`, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            // Optimistic update
+            setCashRegisters(cashRegisters.map(cr =>
+                cr.id === id ? { ...cr, status: newStatus, isEdited: true } : cr
+            ));
+
+            // If status changed to/from 'Controlado', we should refresh to update the Uncontrolled Sum
+            if (newStatus === 'Controlado' || newStatus !== 'Controlado') {
+                fetchCashRegisters();
+            } else {
+                setSuccessModal({ show: true, message: 'Estado actualizado correctamente.', type: 'success' });
+                setTimeout(() => setSuccessModal({ show: false, message: '', type: 'success' }), 2000);
+            }
+
+        } catch (err) {
+            console.error(err);
+            setSuccessModal({ show: true, message: 'Error al actualizar el estado.', type: 'error' });
+        }
+    };
+
     if (loading && !cashRegisters.length && page === 1) return <div className="loading-container">Loading...</div>;
 
     return (
@@ -374,16 +399,25 @@ export default function AdminDashboard() {
                                 </td>
                                 <td>{item.withdrawalEmployee?.name || '-'}</td>
                                 <td>
-                                    <span style={{
-                                        padding: '0.25rem 0.5rem',
-                                        borderRadius: '9999px',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 600,
-                                        backgroundColor: item.status === 'Controlado' ? '#dcfce7' : item.status === 'Retirado' ? '#f3f4f6' : '#fef3c7',
-                                        color: item.status === 'Controlado' ? '#166534' : item.status === 'Retirado' ? '#374151' : '#92400e'
-                                    }}>
-                                        {item.status || 'Pendiente'}
-                                    </span>
+                                    <select
+                                        value={item.status || 'Pendiente'}
+                                        onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                                        style={{
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '9999px',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 600,
+                                            backgroundColor: item.status === 'Controlado' ? '#dcfce7' : item.status === 'Retirado' ? '#f3f4f6' : '#fef3c7',
+                                            color: item.status === 'Controlado' ? '#166534' : item.status === 'Retirado' ? '#374151' : '#92400e',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            outline: 'none'
+                                        }}
+                                    >
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Retirado">Retirado</option>
+                                        <option value="Controlado">Controlado</option>
+                                    </select>
                                     {item.isEdited && (
                                         <div style={{ display: 'flex', alignItems: 'center', color: '#d97706', fontSize: '0.7rem', fontWeight: 600, marginTop: '0.25rem' }}>
                                             <AlertCircle size={10} style={{ marginRight: '2px' }} /> Editado

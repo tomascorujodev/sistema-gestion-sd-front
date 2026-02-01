@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Clock, User, DollarSign, Package, AlertCircle, Wrench, TrendingUp, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import ConfirmationModal from '../components/ConfirmationModal';
 import '../Products.css';
 
 export default function Dashboard() {
@@ -10,6 +11,9 @@ export default function Dashboard() {
     const [kpis, setKpis] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedBranch, setSelectedBranch] = useState("Todas");
+
+    // Error Modal State
+    const [errorModal, setErrorModal] = useState({ isOpen: false, message: '' });
 
     useEffect(() => {
         fetchKpis();
@@ -61,6 +65,21 @@ export default function Dashboard() {
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount);
+    };
+
+    const handleCompleteTask = async (taskId) => {
+        try {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/dashboard/maintenance/${taskId}/complete`);
+            fetchKpis(); // Refresh data
+        } catch (err) {
+            console.error('Error completing task:', err);
+            let msg = "Error al completar la tarea. Verifique su conexión o intente nuevamente.";
+            if (err.response && err.response.data) {
+                msg = err.response.data.message || err.response.data;
+                if (typeof msg !== 'string') msg = "Error al completar la tarea.";
+            }
+            setErrorModal({ isOpen: true, message: msg });
+        }
     };
 
     if (loading) return <div className="loading-container">Cargando tablero...</div>;
@@ -140,17 +159,19 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        {/* Pending Maintenance */}
-                        <div style={{ background: '#64748b', borderRadius: '0.75rem', padding: '1.5rem', color: 'white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span style={{ fontSize: '0.875rem', opacity: 0.9 }}>Tareas Pendientes</span>
-                                <Wrench size={24} style={{ opacity: 0.8 }} />
+                        {/* Pending Maintenance - Hidden for Admin */}
+                        {user?.role !== 'Admin' && (
+                            <div style={{ background: '#64748b', borderRadius: '0.75rem', padding: '1.5rem', color: 'white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.875rem', opacity: 0.9 }}>Tareas Pendientes</span>
+                                    <Wrench size={24} style={{ opacity: 0.8 }} />
+                                </div>
+                                <div style={{ fontSize: '2rem', fontWeight: 700 }}>{kpis.maintenanceTasks.filter(t => !t.isCompleted).length}</div>
+                                <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>
+                                    Mantenimiento
+                                </div>
                             </div>
-                            <div style={{ fontSize: '2rem', fontWeight: 700 }}>{kpis.pendingMaintenance.length}</div>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>
-                                Mantenimiento
-                            </div>
-                        </div>
+                        )}
 
                         {/* Supplier Orders */}
                         {user?.role === 'Admin' && (
@@ -181,33 +202,131 @@ export default function Dashboard() {
                         )}
                     </div>
 
+                    {/* Admin: Branch Status - MOVED BACK HERE */}
+                    {user?.role === 'Admin' && branchStatus.length > 0 && (
+                        <>
+                            <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: '#475569' }}>Estado de Sucursales</h2>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                                {branchStatus.map((branch, index) => (
+                                    <div key={index} style={{ background: 'white', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1e293b', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+                                            {branch.branchName || 'Sucursal Sin Nombre'}
+                                        </h3>
+
+                                        <div style={{ marginBottom: '1.25rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 500, textTransform: 'uppercase' }}>
+                                                <Clock size={16} color="#059669" />
+                                                Turno Actual
+                                            </div>
+                                            {branch.activeShift ? (
+                                                <div style={{ background: '#ecfdf5', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #a7f3d0' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#064e3b', fontSize: '1.1rem' }}>
+                                                        <User size={18} />
+                                                        {branch.activeShift.employeeName}
+                                                    </div>
+                                                    <div style={{ marginTop: '0.25rem', fontSize: '0.9rem', color: '#047857' }}>
+                                                        Inició: {formatTime(branch.activeShift.startTime)}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', color: '#64748b', fontStyle: 'italic' }}>
+                                                    Cerrado
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 500, textTransform: 'uppercase' }}>
+                                                <TrendingUp size={16} />
+                                                Último Turno
+                                            </div>
+                                            {branch.lastClosedShift ? (
+                                                <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: '#f1f5f9' }}>
+                                                    <div style={{ fontWeight: 600, color: '#334155' }}>
+                                                        {branch.lastClosedShift.employeeName}
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.85rem', color: '#475569' }}>
+                                                        <span>Cierre: {formatTime(branch.lastClosedShift.endTime)}</span>
+                                                        <span>{branch.lastClosedShift.totalHours?.toFixed(1)} hrs</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Sin registros previos</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+
                     {/* Maintenance Tasks List */}
-                    {kpis.pendingMaintenance.length > 0 && (
+                    {kpis.maintenanceTasks && kpis.maintenanceTasks.length > 0 && (
                         <div style={{ marginBottom: '2rem' }}>
                             <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <AlertCircle size={20} color="#f59e0b" />
-                                Tareas de Mantenimiento Pendientes
+                                Tareas de Mantenimiento
                             </h3>
                             <div style={{ background: 'white', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                                {kpis.pendingMaintenance.map((task, index) => (
+                                {kpis.maintenanceTasks.map((task, index) => (
                                     <div
                                         key={task.id}
                                         style={{
                                             padding: '1rem 1.25rem',
-                                            borderBottom: index < kpis.pendingMaintenance.length - 1 ? '1px solid #e5e7eb' : 'none',
+                                            borderBottom: index < kpis.maintenanceTasks.length - 1 ? '1px solid #e5e7eb' : 'none',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            justifyContent: 'space-between'
+                                            justifyContent: 'space-between',
+                                            opacity: task.isCompleted ? 0.7 : 1,
+                                            background: task.isCompleted ? '#f0fdf4' : 'white'
                                         }}
                                     >
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '0.25rem' }}>
-                                                {task.description}
-                                            </div>
-                                            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                                                Frecuencia: {task.frequency === 'Daily' ? 'Diaria' : task.frequency === 'Weekly' ? 'Semanal' : 'Mensual'}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                                            {/* Checkbox / Status Indicator */}
+                                            {task.isCompleted ? (
+                                                <div style={{ color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <div style={{ width: '24px', height: '24px', borderRadius: '4px', background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <span style={{ color: 'white', fontWeight: 'bold' }}>✓</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                user?.role === 'Admin' ? (
+                                                    <div style={{ width: '24px', height: '24px', borderRadius: '4px', border: '2px solid #cbd5e1' }} />
+                                                ) : (
+                                                    <div
+                                                        onClick={() => handleCompleteTask(task.id)}
+                                                        style={{
+                                                            width: '24px',
+                                                            height: '24px',
+                                                            borderRadius: '4px',
+                                                            border: '2px solid #cbd5e1',
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#16a34a'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
+                                                    />
+                                                )
+                                            )}
+
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 600, color: task.isCompleted ? '#166534' : '#1e293b', marginBottom: '0.25rem', textDecoration: task.isCompleted ? 'line-through' : 'none' }}>
+                                                    {task.description}
+                                                </div>
+                                                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                                    Frecuencia: {task.frequency === 'Daily' ? 'Diaria' : task.frequency === 'Weekly' ? 'Semanal' : 'Mensual'}
+                                                    {task.isCompleted && (
+                                                        <span style={{ marginLeft: '0.5rem', color: '#16a34a', fontWeight: 500 }}>
+                                                            • Completado por {task.completedBy} ({formatTime(task.completedAt)})
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
+
                                         <div>
                                             <span style={{
                                                 padding: '0.25rem 0.75rem',
@@ -228,63 +347,17 @@ export default function Dashboard() {
                 </>
             )}
 
-            {/* Admin: Branch Status */}
-            {user?.role === 'Admin' && branchStatus.length > 0 && (
-                <>
-                    <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: '#475569' }}>Estado de Sucursales</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                        {branchStatus.map((branch, index) => (
-                            <div key={index} style={{ background: 'white', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1e293b', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
-                                    {branch.branchName || 'Sucursal Sin Nombre'}
-                                </h3>
-
-                                <div style={{ marginBottom: '1.25rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 500, textTransform: 'uppercase' }}>
-                                        <Clock size={16} color="#059669" />
-                                        Turno Actual
-                                    </div>
-                                    {branch.activeShift ? (
-                                        <div style={{ background: '#ecfdf5', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #a7f3d0' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#064e3b', fontSize: '1.1rem' }}>
-                                                <User size={18} />
-                                                {branch.activeShift.employeeName}
-                                            </div>
-                                            <div style={{ marginTop: '0.25rem', fontSize: '0.9rem', color: '#047857' }}>
-                                                Inició: {formatTime(branch.activeShift.startTime)}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', color: '#64748b', fontStyle: 'italic' }}>
-                                            Cerrado
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 500, textTransform: 'uppercase' }}>
-                                        <TrendingUp size={16} />
-                                        Último Turno
-                                    </div>
-                                    {branch.lastClosedShift ? (
-                                        <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: '#f1f5f9' }}>
-                                            <div style={{ fontWeight: 600, color: '#334155' }}>
-                                                {branch.lastClosedShift.employeeName}
-                                            </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.85rem', color: '#475569' }}>
-                                                <span>Cierre: {formatTime(branch.lastClosedShift.endTime)}</span>
-                                                <span>{branch.lastClosedShift.totalHours?.toFixed(1)} hrs</span>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Sin registros previos</div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            )}
+            {/* Error Modal */}
+            <ConfirmationModal
+                isOpen={errorModal.isOpen}
+                onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+                onConfirm={() => setErrorModal({ ...errorModal, isOpen: false })}
+                title="Error"
+                message={errorModal.message}
+                confirmText="Entendido"
+                isDestructive={true}
+                hideCancel={true}
+            />
         </div>
     );
 }

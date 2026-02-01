@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, CheckSquare, Tag, Clock, DollarSign, ChevronDown, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, CheckSquare, Tag, Clock, DollarSign, ChevronDown, ChevronRight, AlertOctagon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import '../Layout.css';
@@ -55,6 +55,7 @@ export default function Layout() {
     const [lastEmployee, setLastEmployee] = useState(null);
     const [errorModal, setErrorModal] = useState({ show: false, message: '' });
     const [isCajaDropdownOpen, setIsCajaDropdownOpen] = useState(false);
+    const [isWebDropdownOpen, setIsWebDropdownOpen] = useState(false);
 
     const handleEndShiftClick = () => {
         setShowEndShiftModal(true);
@@ -187,10 +188,7 @@ export default function Layout() {
                         <LayoutDashboard size={20} />
                         <span>Inicio</span>
                     </Link>
-                    <Link to="/products" className={isActive('/products')}>
-                        <Package size={20} />
-                        <span>Productos</span>
-                    </Link>
+                    {/* Products moved to Web Dropdown */}
                     {user?.role === 'Admin' && (
                         <Link to="/entities" className={isActive('/entities')}>
                             <Users size={20} />
@@ -201,6 +199,10 @@ export default function Layout() {
                         <ShoppingCart size={20} />
                         <span>Pedidos Proveedores</span>
                     </Link>
+                    <Link to="/shortages" className={isActive('/shortages')}>
+                        <AlertOctagon size={20} />
+                        <span>Faltantes</span>
+                    </Link>
                     <Link to="/reports" className={isActive('/reports')}>
                         <FileText size={20} />
                         <span>Informes</span>
@@ -209,6 +211,8 @@ export default function Layout() {
                         <Tag size={20} />
                         <span>Promociones</span>
                     </Link>
+
+                    {/* Operator Only Links */}
                     {user?.role !== 'Admin' && (
                         <Link to="/cash-register" className={isActive('/cash-register')}>
                             <DollarSign size={20} />
@@ -225,6 +229,77 @@ export default function Layout() {
                             <span>Mantenimiento</span>
                         </Link>
                     )}
+                    <Link to="/mi-vet-shop" className={isActive('/mi-vet-shop')}>
+                        <FileText size={20} />
+                        <span>Mi Vet Shop</span>
+                    </Link>
+
+                    {/* Web Page Dropdown - Visible for Admin and Operator */}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                        <div
+                            onClick={() => setIsWebDropdownOpen(!isWebDropdownOpen)}
+                            className={`nav-item ${location.pathname.includes('/design') || location.pathname.includes('/coupons') || location.pathname.includes('/products') ? 'active' : ''}`}
+                            style={{ cursor: 'pointer', justifyContent: 'space-between' }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <LayoutDashboard size={20} />
+                                <span>Página Web</span>
+                            </div>
+                            {isWebDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        </div>
+                        {isWebDropdownOpen && (
+                            <div style={{ paddingLeft: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                <Link
+                                    to="/products"
+                                    className={location.pathname === '/products' ? 'sub-nav-item active' : 'sub-nav-item'}
+                                    style={{
+                                        textDecoration: 'none',
+                                        color: location.pathname === '/products' ? 'var(--primary-color)' : '#6b7280',
+                                        fontSize: '0.875rem',
+                                        padding: '0.5rem',
+                                        borderRadius: '0.375rem',
+                                        background: location.pathname === '/products' ? '#eef2ff' : 'transparent',
+                                        display: 'block'
+                                    }}
+                                >
+                                    Productos
+                                </Link>
+                                {user?.role === 'Admin' && (
+                                    <Link
+                                        to="/design"
+                                        className={location.pathname === '/design' ? 'sub-nav-item active' : 'sub-nav-item'}
+                                        style={{
+                                            textDecoration: 'none',
+                                            color: location.pathname === '/design' ? 'var(--primary-color)' : '#6b7280',
+                                            fontSize: '0.875rem',
+                                            padding: '0.5rem',
+                                            borderRadius: '0.375rem',
+                                            background: location.pathname === '/design' ? '#eef2ff' : 'transparent',
+                                            display: 'block'
+                                        }}
+                                    >
+                                        Diseño
+                                    </Link>
+                                )}
+                                <Link
+                                    to="/coupons"
+                                    className={location.pathname === '/coupons' ? 'sub-nav-item active' : 'sub-nav-item'}
+                                    style={{
+                                        textDecoration: 'none',
+                                        color: location.pathname === '/coupons' ? 'var(--primary-color)' : '#6b7280',
+                                        fontSize: '0.875rem',
+                                        padding: '0.5rem',
+                                        borderRadius: '0.375rem',
+                                        background: location.pathname === '/coupons' ? '#eef2ff' : 'transparent',
+                                        display: 'block'
+                                    }}
+                                >
+                                    Cupones
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
                     {user?.role === 'Admin' && (
                         <>
                             <div style={{ marginBottom: '0.5rem' }}>
@@ -286,10 +361,6 @@ export default function Layout() {
                             <Link to="/branches" className={isActive('/branches')}>
                                 <Users size={20} />
                                 <span>Sucursales</span>
-                            </Link>
-                            <Link to="/design" className={isActive('/design')}>
-                                <Package size={20} />
-                                <span>Diseño Web</span>
                             </Link>
                         </>
                     )}

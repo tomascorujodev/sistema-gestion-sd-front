@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Trash2, Eye, Package, DollarSign, CheckCircle, Check } from 'lucide-react';
 import '../Products.css';
+import { useAuth } from '../context/AuthContext';
 
 export default function CustomerOrders() {
+    const { user } = useAuth();
     const [orders, setOrders] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -132,6 +134,26 @@ export default function CustomerOrders() {
         }
     };
 
+    const [deleteModal, setDeleteModal] = useState({ show: false, orderId: null });
+
+    const handleDelete = (id) => {
+        setDeleteModal({ show: true, orderId: id });
+    };
+
+    const confirmDelete = async () => {
+        try {
+            if (!deleteModal.orderId) return;
+            const id = deleteModal.orderId;
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/customerorders/${id}`);
+            setOrders(orders.filter(o => o.id !== id));
+            showToast('Pedido eliminado correctamente');
+            setDeleteModal({ show: false, orderId: null });
+        } catch (err) {
+            setDeleteModal({ show: false, orderId: null });
+            showToast('Error al eliminar el pedido. Verifique permisos.', 'error');
+        }
+    };
+
     const filteredOrders = filterStatus === 'all'
         ? orders
         : orders.filter(o => o.status === filterStatus);
@@ -256,6 +278,16 @@ export default function CustomerOrders() {
                                         <button className="icon-btn" title="Ver detalles" onClick={() => handleViewDetails(order)}>
                                             <Eye size={16} />
                                         </button>
+                                        {order.status === 'Listo' && (
+                                            <button
+                                                className="icon-btn"
+                                                title="Eliminar pedido"
+                                                onClick={() => handleDelete(order.id)}
+                                                style={{ color: '#ef4444' }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -263,6 +295,42 @@ export default function CustomerOrders() {
                     </tbody>
                 </table>
             </div>
+
+            {deleteModal.show && (
+                <div className="modal-overlay" style={{ zIndex: 3000 }}>
+                    <div className="modal-content" style={{ maxWidth: '400px' }}>
+                        <div className="modal-header">
+                            <h2>Confirmar Eliminación</h2>
+                            <button onClick={() => setDeleteModal({ show: false, orderId: null })} className="close-btn">×</button>
+                        </div>
+                        <div className="modal-body" style={{ padding: '1.5rem', textAlign: 'center' }}>
+                            <div style={{ width: '64px', height: '64px', backgroundColor: '#fee2e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                                <Trash2 size={32} color="#dc2626" />
+                            </div>
+                            <p style={{ color: '#4b5563', marginBottom: '2rem', fontSize: '1rem', lineHeight: '1.5' }}>
+                                ¿Está seguro de que desea eliminar este pedido? <br />
+                                <strong>Esta acción no se puede deshacer.</strong>
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                <button
+                                    onClick={() => setDeleteModal({ show: false, orderId: null })}
+                                    className="btn btn-secondary"
+                                    style={{ width: '100%' }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="btn"
+                                    style={{ width: '100%', backgroundColor: '#dc2626', color: 'white' }}
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {isModalOpen && (
                 <div className="modal-overlay">
@@ -395,7 +463,7 @@ export default function CustomerOrders() {
                             <h2>Detalles del Pedido</h2>
                             <button onClick={() => setViewModal({ show: false, order: null })} className="close-btn">×</button>
                         </div>
-                        <div className="order-details" style={{ padding: '2rem' }}>
+                        <div className="order-details" style={{ padding: '2rem', maxHeight: '75vh', overflowY: 'auto' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                                 <div>
                                     <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Cliente</strong>
@@ -435,6 +503,23 @@ export default function CustomerOrders() {
                                         {viewModal.order.isPaid ? 'Pagado' : 'Pendiente'}
                                     </span>
                                 </div>
+                                <div>
+                                    <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Estado del Pedido</strong>
+                                    <span
+                                        style={{
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            backgroundColor: getStatusColor(viewModal.order.status),
+                                            color: 'white',
+                                            fontWeight: 600,
+                                            fontSize: '0.875rem',
+                                            display: 'inline-block',
+                                            marginTop: '0.25rem'
+                                        }}
+                                    >
+                                        {viewModal.order.status}
+                                    </span>
+                                </div>
                             </div>
 
                             <div style={{ backgroundColor: '#f9fafb', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
@@ -444,21 +529,7 @@ export default function CustomerOrders() {
                                 </p>
                             </div>
 
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #e5e7eb', paddingTop: '1.5rem' }}>
-                                <strong style={{ color: '#111827' }}>Estado del Pedido:</strong>
-                                <span
-                                    style={{
-                                        padding: '0.5rem 1rem',
-                                        borderRadius: '9999px',
-                                        backgroundColor: getStatusColor(viewModal.order.status),
-                                        color: 'white',
-                                        fontWeight: 600,
-                                        fontSize: '0.875rem'
-                                    }}
-                                >
-                                    {viewModal.order.status}
-                                </span>
-                            </div>
+
                         </div>
                     </div>
                 </div>

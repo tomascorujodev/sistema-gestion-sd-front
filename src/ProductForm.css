@@ -14,8 +14,13 @@
 .modal-content {
     background-color: var(--white);
     border-radius: 0.5rem;
-    width: 100%;
-    max-width: 500px;
+    width: 60%;
+    max-width: 600px;
+    max-height: 90vh;
+    /* Limit height */
+    display: flex;
+    /* Make flex container */
+    flex-direction: column;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
@@ -25,6 +30,8 @@
     align-items: center;
     padding: 1.5rem;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
 }
 
 .modal-header h2 {
@@ -46,7 +53,19 @@
 }
 
 .modal-form {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent double scroll */
+    height: 100%;
+}
+
+.modal-body {
     padding: 1.5rem;
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+    flex: 1;
+    /* Take remaining space */
 }
 
 .form-group {
@@ -74,7 +93,10 @@
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background-color: var(--white);
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .btn-secondary {

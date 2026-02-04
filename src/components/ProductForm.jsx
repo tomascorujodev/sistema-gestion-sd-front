@@ -69,129 +69,131 @@ export default function ProductForm({ product, onSave, onCancel }) {
                     </button>
                 </div>
                 <form onSubmit={handleSubmit} className="modal-form">
-                    <div className="form-group">
-                        <label>Nombre</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            className="input-field"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>SKU</label>
-                        <input
-                            type="text"
-                            name="sku"
-                            value={formData.sku}
-                            onChange={handleChange}
-                            className="input-field"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Categoría</label>
-                        <input
-                            type="text"
-                            name="category"
-                            value={formData.category}
-                            onChange={handleChange}
-                            className="input-field"
-                        />
-                    </div>
-                    <div className="form-row">
+                    <div className="modal-body">
                         <div className="form-group">
-                            <label>Precio</label>
+                            <label>Nombre</label>
                             <input
-                                type="number"
-                                name="price"
-                                value={formData.price}
-                                onChange={handleChange}
-                                step="0.01"
-                                required
-                                className="input-field"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Stock</label>
-                            <input
-                                type="number"
-                                name="stock"
-                                value={formData.stock}
+                                type="text"
+                                name="name"
+                                value={formData.name}
                                 onChange={handleChange}
                                 required
                                 className="input-field"
                             />
                         </div>
-                    </div>
-
-                    {/* New Fields: Image Upload */}
-                    <div className="form-group">
-                        <label>Imagen del Producto</label>
-                        <CloudinaryUpload
-                            imageUrl={formData.imageUrl}
-                            onImageUpload={handleImageUpload}
-                            cloudName={import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}
-                            uploadPreset={import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET}
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Descripción</label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            className="input-field"
-                            rows="4"
-                            placeholder="Descripción detallada del producto..."
-                        />
-                    </div>
-
-                    {/* New Fields: Active Status and Offer */}
-                    <div className="form-row">
-                        <div className="form-group checkbox-group">
-                            <label className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    name="isActive"
-                                    checked={formData.isActive}
-                                    onChange={handleChange}
-                                    className="checkbox-input"
-                                />
-                                <span className="text-sm">Producto Activo</span>
-                            </label>
-                        </div>
-                        <div className="form-group checkbox-group">
-                            <label className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    name="isOnOffer"
-                                    checked={formData.isOnOffer}
-                                    onChange={handleChange}
-                                    className="checkbox-input"
-                                />
-                                <span className="text-sm">En Oferta</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Offer Price - Only show if isOnOffer is true */}
-                    {formData.isOnOffer && (
                         <div className="form-group">
-                            <label>Precio de Oferta</label>
+                            <label>SKU</label>
                             <input
-                                type="number"
-                                name="offerPrice"
-                                value={formData.offerPrice}
+                                type="text"
+                                name="sku"
+                                value={formData.sku}
                                 onChange={handleChange}
-                                step="0.01"
                                 className="input-field"
-                                placeholder="Ingrese el precio especial"
                             />
                         </div>
-                    )}
+                        <div className="form-group">
+                            <label>Categoría</label>
+                            <input
+                                type="text"
+                                name="category"
+                                value={formData.category}
+                                onChange={handleChange}
+                                className="input-field"
+                            />
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Precio</label>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    value={formData.price}
+                                    onChange={handleChange}
+                                    step="0.01"
+                                    required
+                                    className="input-field"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Stock</label>
+                                <input
+                                    type="number"
+                                    name="stock"
+                                    value={formData.stock}
+                                    onChange={handleChange}
+                                    required
+                                    className="input-field"
+                                />
+                            </div>
+                        </div>
+
+                        {/* New Fields: Image Upload */}
+                        <div className="form-group">
+                            <label>Imagen del Producto</label>
+                            <CloudinaryUpload
+                                imageUrl={formData.imageUrl}
+                                onImageUpload={handleImageUpload}
+                                cloudName={import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}
+                                uploadPreset={import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET}
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Descripción</label>
+                            <textarea
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                className="input-field"
+                                rows="4"
+                                placeholder="Descripción detallada del producto..."
+                            />
+                        </div>
+
+                        {/* New Fields: Active Status and Offer */}
+                        <div className="form-row">
+                            <div className="form-group checkbox-group">
+                                <label className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        name="isActive"
+                                        checked={formData.isActive}
+                                        onChange={handleChange}
+                                        className="checkbox-input"
+                                    />
+                                    <span className="text-sm">Producto Activo</span>
+                                </label>
+                            </div>
+                            <div className="form-group checkbox-group">
+                                <label className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        name="isOnOffer"
+                                        checked={formData.isOnOffer}
+                                        onChange={handleChange}
+                                        className="checkbox-input"
+                                    />
+                                    <span className="text-sm">En Oferta</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Offer Price - Only show if isOnOffer is true */}
+                        {formData.isOnOffer && (
+                            <div className="form-group">
+                                <label>Precio de Oferta</label>
+                                <input
+                                    type="number"
+                                    name="offerPrice"
+                                    value={formData.offerPrice}
+                                    onChange={handleChange}
+                                    step="0.01"
+                                    className="input-field"
+                                    placeholder="Ingrese el precio especial"
+                                />
+                            </div>
+                        )}
+                    </div>
 
                     <div className="modal-footer">
                         <button type="button" onClick={onCancel} className="btn btn-secondary">

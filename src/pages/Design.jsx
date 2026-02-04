@@ -35,7 +35,6 @@ export default function Design() {
                     secondaryColor: data.secondaryColor || '#000000',
                     cloudinaryCloudName: data.cloudinaryCloudName || '',
                     cloudinaryUploadPreset: data.cloudinaryUploadPreset || '',
-                    cloudinaryUploadPreset: data.cloudinaryUploadPreset || '',
                     isStoreEnabled: data.isStoreEnabled !== undefined ? data.isStoreEnabled : true,
                     theme: data.theme || 'Dark'
                 });

@@ -1,6 +1,6 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, CheckSquare, Tag, Clock, DollarSign, ChevronDown, ChevronRight, AlertOctagon } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, CheckSquare, Tag, Clock, DollarSign, ChevronDown, ChevronRight, ChevronLeft, AlertOctagon, Menu } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import '../Layout.css';
@@ -14,7 +14,23 @@ import ShiftAutoCloseNotification from './ShiftAutoCloseNotification';
 export default function Layout() {
     const { logout, user, employee, activeShift, endShift, selectEmployee, checkingShift } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
     const [shiftDuration, setShiftDuration] = useState('');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Default collapsed on mobile
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const isExpanded = isMobile ? isMobileMenuOpen : true;
+
+    // Close sidebar (collapse) when location changes (mobile)
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location]);
 
     useEffect(() => {
         if (!activeShift) {
@@ -142,15 +158,48 @@ export default function Layout() {
                 />
             )}
             <ShiftAutoCloseNotification />
-            <aside className="sidebar">
-                <div className="sidebar-header">
-                    <img src={logo} alt="Street Dog" style={{ maxWidth: '100%', height: 'auto', padding: '0.5rem' }} />
-                    <p className="user-role" style={{ textTransform: 'capitalize' }}>
-                        {user?.branch || user?.username || user?.role}
-                    </p>
-                    {employee ? (
+
+            {/* Mobile Sidebar Overlay - Only when expanded */}
+            {isMobileMenuOpen && isMobile && (
+                <div
+                    className="sidebar-overlay"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
+            <aside className={`sidebar ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isExpanded ? '1.5rem' : '1rem 0.5rem', minHeight: '80px' }}>
+                    {isExpanded && (
+                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                            <img src={logo} alt="Street Dog" style={{ maxWidth: '100%', height: 'auto', marginBottom: '0.5rem' }} />
+                            <p className="user-role" style={{ textTransform: 'capitalize' }}>
+                                {user?.branch || user?.username || user?.role}
+                            </p>
+                        </div>
+                    )}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="sidebar-toggle-btn"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--text-color, #374151)', // Ensure visibility against white background
+                            margin: isExpanded ? '0 0 0 1rem' : '0 auto',
+                            padding: '0.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}
+                    >
+                        {isExpanded ? <ChevronLeft size={28} /> : <Menu size={28} />}
+                    </button>
+                </div>
+
+                {isExpanded && employee && (
+                    <div style={{ padding: '0 1rem 1rem' }}>
                         <div style={{
-                            marginTop: '0.5rem',
                             padding: '0.5rem',
                             backgroundColor: '#eef2ff',
                             borderRadius: '0.25rem',
@@ -166,88 +215,88 @@ export default function Layout() {
                                 </div>
                             )}
                         </div>
-                    ) : (
-                        user?.role === 'Operator' && !checkingShift && (
-                            <button
-                                onClick={handleStartShiftClick}
-                                className="btn btn-primary"
-                                style={{
-                                    marginTop: '0.5rem',
-                                    width: '100%',
-                                    fontSize: '0.875rem',
-                                    padding: '0.5rem'
-                                }}
-                            >
-                                Iniciar Turno
-                            </button>
-                        )
-                    )}
-                </div>
+                    </div>
+                )}
+
+                {isExpanded && !employee && user?.role === 'Operator' && !checkingShift && (
+                    <div style={{ padding: '0 1rem 1rem' }}>
+                        <button
+                            onClick={handleStartShiftClick}
+                            className="btn btn-primary"
+                            style={{ width: '100%', fontSize: '0.875rem', padding: '0.5rem' }}
+                        >
+                            Iniciar Turno
+                        </button>
+                    </div>
+                )}
+
                 <nav className="sidebar-nav">
                     <Link to="/" className={isActive('/')}>
-                        <LayoutDashboard size={20} />
-                        <span>Inicio</span>
+                        <LayoutDashboard size={28} />
+                        {isExpanded && <span>Inicio</span>}
                     </Link>
-                    {/* Products moved to Web Dropdown */}
                     {user?.role === 'Admin' && (
                         <Link to="/entities" className={isActive('/entities')}>
-                            <Users size={20} />
-                            <span>Gestión Entidades</span>
+                            <Users size={28} />
+                            {isExpanded && <span>Gestión Entidades</span>}
                         </Link>
                     )}
-                    <Link to="/orders" className={isActive('/orders')}>
-                        <ShoppingCart size={20} />
-                        <span>Pedidos Proveedores</span>
-                    </Link>
-                    <Link to="/shortages" className={isActive('/shortages')}>
-                        <AlertOctagon size={20} />
-                        <span>Faltantes</span>
+                    <Link to="/suppliers" className={isActive('/suppliers')}>
+                        <ShoppingCart size={28} />
+                        {isExpanded && <span>Proveedores</span>}
                     </Link>
                     <Link to="/reports" className={isActive('/reports')}>
-                        <FileText size={20} />
-                        <span>Informes</span>
+                        <FileText size={28} />
+                        {isExpanded && <span>Informes</span>}
                     </Link>
                     <Link to="/promotions" className={isActive('/promotions')}>
-                        <Tag size={20} />
-                        <span>Promociones</span>
+                        <Tag size={28} />
+                        {isExpanded && <span>Promociones</span>}
                     </Link>
 
                     {/* Operator Only Links */}
                     {user?.role !== 'Admin' && (
                         <Link to="/cash-register" className={isActive('/cash-register')}>
-                            <DollarSign size={20} />
-                            <span>Cierre de Caja</span>
+                            <DollarSign size={28} />
+                            {isExpanded && <span>Cierre de Caja</span>}
                         </Link>
                     )}
                     <Link to="/customer-orders" className={isActive('/customer-orders')}>
-                        <Package size={20} />
-                        <span>Pedidos Clientes</span>
+                        <Package size={28} />
+                        {isExpanded && <span>Pedidos Clientes</span>}
                     </Link>
                     {user?.role !== 'Admin' && (
                         <Link to="/maintenance-operator" className={isActive('/maintenance-operator')}>
-                            <CheckSquare size={20} />
-                            <span>Mantenimiento</span>
+                            <CheckSquare size={28} />
+                            {isExpanded && <span>Mantenimiento</span>}
                         </Link>
                     )}
                     <Link to="/mi-vet-shop" className={isActive('/mi-vet-shop')}>
-                        <FileText size={20} />
-                        <span>Mi Vet Shop</span>
+                        <FileText size={28} />
+                        {isExpanded && <span>Mi Vet Shop</span>}
                     </Link>
 
                     {/* Web Page Dropdown - Visible for Admin and Operator */}
                     <div style={{ marginBottom: '0.5rem' }}>
                         <div
-                            onClick={() => setIsWebDropdownOpen(!isWebDropdownOpen)}
+                            onClick={() => {
+                                if (!isExpanded) {
+                                    navigate('/products');
+                                } else {
+                                    setIsWebDropdownOpen(!isWebDropdownOpen);
+                                }
+                            }}
                             className={`nav-item ${location.pathname.includes('/design') || location.pathname.includes('/coupons') || location.pathname.includes('/products') ? 'active' : ''}`}
-                            style={{ cursor: 'pointer', justifyContent: 'space-between' }}
+                            style={{ cursor: 'pointer', justifyContent: isExpanded ? 'space-between' : 'center' }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <LayoutDashboard size={20} />
-                                <span>Página Web</span>
+                                <LayoutDashboard size={28} />
+                                {isExpanded && <span>Página Web</span>}
                             </div>
-                            {isWebDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                            {isExpanded && (isWebDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
                         </div>
-                        {isWebDropdownOpen && (
+                        {/* Web - Submenu */}
+                        {isWebDropdownOpen && isExpanded && (
                             <div style={{ paddingLeft: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
                                 <Link
                                     to="/products"
@@ -304,17 +353,23 @@ export default function Layout() {
                         <>
                             <div style={{ marginBottom: '0.5rem' }}>
                                 <div
-                                    onClick={() => setIsCajaDropdownOpen(!isCajaDropdownOpen)}
+                                    onClick={() => {
+                                        if (!isExpanded) {
+                                            navigate('/admin');
+                                        } else {
+                                            setIsCajaDropdownOpen(!isCajaDropdownOpen);
+                                        }
+                                    }}
                                     className={`nav-item ${location.pathname.includes('/admin') || location.pathname.includes('/cash-register-log') ? 'active' : ''}`}
-                                    style={{ cursor: 'pointer', justifyContent: 'space-between' }}
+                                    style={{ cursor: 'pointer', justifyContent: isExpanded ? 'space-between' : 'center' }}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <DollarSign size={20} />
-                                        <span>Caja</span>
+                                        <DollarSign size={28} />
+                                        {isExpanded && <span>Caja</span>}
                                     </div>
-                                    {isCajaDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                    {isExpanded && (isCajaDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
                                 </div>
-                                {isCajaDropdownOpen && (
+                                {isCajaDropdownOpen && isExpanded && (
                                     <div style={{ paddingLeft: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
                                         <Link
                                             to="/admin"
@@ -351,16 +406,16 @@ export default function Layout() {
                             </div>
 
                             <Link to="/employees" className={isActive('/employees')}>
-                                <Users size={20} />
-                                <span>Empleados</span>
+                                <Users size={28} />
+                                {isExpanded && <span>Empleados</span>}
                             </Link>
                             <Link to="/maintenance" className={isActive('/maintenance')}>
-                                <CheckSquare size={20} />
-                                <span>Mantenimiento</span>
+                                <CheckSquare size={24} />
+                                {isExpanded && <span>Mantenimiento</span>}
                             </Link>
                             <Link to="/branches" className={isActive('/branches')}>
-                                <Users size={20} />
-                                <span>Sucursales</span>
+                                <Users size={24} />
+                                {isExpanded && <span>Sucursales</span>}
                             </Link>
                         </>
                     )}
@@ -371,9 +426,9 @@ export default function Layout() {
                             Finalizar Turno
                         </button>
                     )}
-                    <button onClick={handleLogoutClick} className="logout-btn">
-                        <LogOut size={20} />
-                        <span>Cerrar Sesión</span>
+                    <button onClick={handleLogoutClick} className="logout-btn" style={{ justifyContent: isExpanded ? 'flex-start' : 'center' }}>
+                        <LogOut size={24} />
+                        {isExpanded && <span>Cerrar Sesión</span>}
                     </button>
                 </div>
             </aside>

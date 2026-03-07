@@ -15,22 +15,12 @@ export default function EntitiesManagement() {
                 <h1>Gestión de Entidades</h1>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+            <div className="tabs-container">
                 {['Proveedores', 'Rubros', 'Cuentas', 'Autorizantes'].map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        style={{
-                            padding: '0.75rem 1.5rem',
-                            borderBottom: activeTab === tab ? '2px solid var(--primary-color)' : '2px solid transparent',
-                            color: activeTab === tab ? 'var(--primary-color)' : '#64748b',
-                            fontWeight: activeTab === tab ? 600 : 400,
-                            background: 'none',
-                            borderTop: 'none',
-                            borderLeft: 'none',
-                            borderRight: 'none',
-                            cursor: 'pointer'
-                        }}
+                        className={`tab-button ${activeTab === tab ? 'active' : ''}`}
                     >
                         {tab}
                     </button>

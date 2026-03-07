@@ -3,7 +3,7 @@ import axios from 'axios';
 import { X, Save, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export default function AddShortageModal({ isOpen, onClose, onSuccess }) {
+export default function AddShortageModal({ isOpen, onClose, onSuccess, initialData = null }) {
     const { user } = useAuth();
     const [suppliers, setSuppliers] = useState([]);
     const [formData, setFormData] = useState({
@@ -12,7 +12,8 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess }) {
         invoiceNumber: '',
         missingProduct: '',
         quantity: 1,
-        note: ''
+        note: '',
+        branch: '' // For Admins
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -20,18 +21,31 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess }) {
     useEffect(() => {
         if (isOpen) {
             fetchSuppliers();
-            // Reset form
-            setFormData({
-                date: new Date().toISOString().split('T')[0],
-                supplierId: '',
-                invoiceNumber: '',
-                missingProduct: '',
-                quantity: 1,
-                note: ''
-            });
+            // Reset form or use initialData
+            if (initialData) {
+                setFormData({
+                    date: initialData.entryDate ? new Date(initialData.entryDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                    supplierId: initialData.supplierId || '',
+                    invoiceNumber: initialData.invoiceNumber || '',
+                    missingProduct: '',
+                    quantity: 1,
+                    note: '',
+                    branch: ''
+                });
+            } else {
+                setFormData({
+                    date: new Date().toISOString().split('T')[0],
+                    supplierId: '',
+                    invoiceNumber: '',
+                    missingProduct: '',
+                    quantity: 1,
+                    note: '',
+                    branch: ''
+                });
+            }
             setError('');
         }
-    }, [isOpen]);
+    }, [isOpen, initialData]);
 
     const fetchSuppliers = async () => {
         try {
@@ -58,6 +72,12 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess }) {
 
         if (!formData.supplierId) {
             setError('Seleccione un proveedor.');
+            setLoading(false);
+            return;
+        }
+
+        if (user.role === 'Admin' && !formData.branch) {
+            setError('Seleccione una sucursal.');
             setLoading(false);
             return;
         }
@@ -110,6 +130,24 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess }) {
                                 className="input-field"
                             />
                         </div>
+
+                        {user?.role === 'Admin' && (
+                            <div className="form-group">
+                                <label>Sucursal</label>
+                                <select
+                                    name="branch"
+                                    value={formData.branch}
+                                    onChange={handleChange}
+                                    required
+                                    className="input-field"
+                                >
+                                    <option value="">Seleccione Sucursal</option>
+                                    <option value="Tucuman">Tucumán</option>
+                                    <option value="Independencia">Independencia</option>
+                                    <option value="Sucursal Principal">Sucursal Principal</option>
+                                </select>
+                            </div>
+                        )}
 
                         <div className="form-group">
                             <label>Proveedor</label>

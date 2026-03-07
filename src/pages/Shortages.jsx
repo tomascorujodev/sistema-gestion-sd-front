@@ -3,16 +3,32 @@ import axios from 'axios';
 import { Plus, Search, Filter, AlertCircle, CheckCircle, Clock, FileText, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AddShortageModal from '../components/AddShortageModal';
+import ConfirmationModal from '../components/ConfirmationModal';
 
-export default function Shortages() {
+export default function Shortages({ isSubComponent = false, initialInvoice = null }) {
     const { user } = useAuth();
     const [shortages, setShortages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isaddModalOpen, setIsAddModalOpen] = useState(false);
 
+    // Confirmation Modal state
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        isDestructive: false
+    });
+
     // Status update handling
     const [updatingStatusId, setUpdatingStatusId] = useState(null);
+
+    useEffect(() => {
+        if (initialInvoice) {
+            setIsAddModalOpen(true);
+        }
+    }, [initialInvoice]);
 
     useEffect(() => {
         fetchShortages();
@@ -30,17 +46,24 @@ export default function Shortages() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('¿Está seguro de que desea eliminar este faltante? Esta acción no se puede deshacer.')) {
-            return;
-        }
+    const confirmDelete = (id) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Eliminar Faltante',
+            message: '¿Está seguro de que desea eliminar este faltante? Esta acción no se puede deshacer.',
+            onConfirm: () => handleDelete(id),
+            isDestructive: true
+        });
+    };
 
+    const handleDelete = async (id) => {
         try {
             await axios.delete(`${import.meta.env.VITE_API_URL}/api/shortages/${id}`);
             setShortages(prev => prev.filter(s => s.id !== id));
+            setConfirmModal({ ...confirmModal, isOpen: false });
         } catch (err) {
             console.error('Error deleting shortage:', err);
-            alert(err.response?.data || 'Error al eliminar el faltante.');
+            alert('Error al eliminar el faltante.');
         }
     };
 
@@ -84,21 +107,27 @@ export default function Shortages() {
     if (loading) return <div className="loading-container">Cargando faltantes...</div>;
 
     return (
-        <div className="container">
-            <div className="page-header">
-                <div>
-                    <h1>Faltantes de Mercadería</h1>
-                    <p>Registro y seguimiento de productos faltantes</p>
-                </div>
-                {user?.role !== 'Admin' && (
-                    <button onClick={() => setIsAddModalOpen(true)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Plus size={20} />
-                        Registrar Faltante
-                    </button>
-                )}
-            </div>
+        <div className={isSubComponent ? "" : "container"}>
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText="Confirmar"
+                isDestructive={confirmModal.isDestructive}
+            />
 
-            <div className="filters-bar" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            {!isSubComponent && (
+                <div className="page-header">
+                    <div>
+                        <h1>Faltantes de Mercadería</h1>
+                        <p>Registro y seguimiento de productos faltantes</p>
+                    </div>
+                </div>
+            )}
+
+            <div className="filters-bar" style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
                     <input
                         type="text"
@@ -110,6 +139,12 @@ export default function Shortages() {
                     />
                     <Search size={20} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
                 </div>
+
+                {/* Always show button but maybe different style if subcomponent */}
+                <button onClick={() => setIsAddModalOpen(true)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Plus size={20} />
+                    Registrar Faltante
+                </button>
             </div>
 
             <div className="table-container">
@@ -159,7 +194,7 @@ export default function Shortages() {
                                             </select>
                                             {item.status === 'Resuelto' && (
                                                 <button
-                                                    onClick={() => handleDelete(item.id)}
+                                                    onClick={() => confirmDelete(item.id)}
                                                     className="icon-btn"
                                                     title="Eliminar faltante resuelto"
                                                     style={{ color: '#ef4444' }}
@@ -186,6 +221,7 @@ export default function Shortages() {
                 isOpen={isaddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSuccess={fetchShortages}
+                initialData={initialInvoice}
             />
         </div>
     );

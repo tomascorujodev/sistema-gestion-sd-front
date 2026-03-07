@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, Eye, Package, DollarSign, CheckCircle, Check } from 'lucide-react';
+import { Plus, Trash2, Eye, Package, DollarSign, CheckCircle, Check, Store } from 'lucide-react';
 import '../Products.css';
 import { useAuth } from '../context/AuthContext';
 
@@ -23,6 +23,7 @@ export default function CustomerOrders() {
         status: 'Pendiente'
     });
     const [filterStatus, setFilterStatus] = useState('all');
+    const [filterShipping, setFilterShipping] = useState('all');
 
     const [viewModal, setViewModal] = useState({ show: false, order: null });
     const [paymentModal, setPaymentModal] = useState({
@@ -154,9 +155,15 @@ export default function CustomerOrders() {
         }
     };
 
-    const filteredOrders = filterStatus === 'all'
-        ? orders
-        : orders.filter(o => o.status === filterStatus);
+    const filteredOrders = orders.filter(o => {
+        const matchesStatus = filterStatus === 'all' || o.status === filterStatus;
+        const matchesShipping = filterShipping === 'all'
+            ? true
+            : filterShipping === 'shipping'
+                ? !!o.addressStreet // Has address => Shipping
+                : !o.addressStreet; // No address => Pickup
+        return matchesStatus && matchesShipping;
+    });
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -180,37 +187,64 @@ export default function CustomerOrders() {
                 </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                <button
-                    className={`btn ${filterStatus === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setFilterStatus('all')}
-                >
-                    Todos ({orders.length})
-                </button>
-                <button
-                    className={`btn ${filterStatus === 'Pendiente' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setFilterStatus('Pendiente')}
-                >
-                    Pendiente ({orders.filter(o => o.status === 'Pendiente').length})
-                </button>
-                <button
-                    className={`btn ${filterStatus === 'En Preparación' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setFilterStatus('En Preparación')}
-                >
-                    En Preparación ({orders.filter(o => o.status === 'En Preparación').length})
-                </button>
-                <button
-                    className={`btn ${filterStatus === 'Listo' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setFilterStatus('Listo')}
-                >
-                    Listo ({orders.filter(o => o.status === 'Listo').length})
-                </button>
-                <button
-                    className={`btn ${filterStatus === 'Entregado' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setFilterStatus('Entregado')}
-                >
-                    Entregado ({orders.filter(o => o.status === 'Entregado').length})
-                </button>
+            <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, color: '#4b5563', marginRight: '0.5rem' }}>Estado:</span>
+                    <button
+                        className={`btn ${filterStatus === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setFilterStatus('all')}
+                    >
+                        Todos
+                    </button>
+                    <button
+                        className={`btn ${filterStatus === 'Pendiente' ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setFilterStatus('Pendiente')}
+                    >
+                        Pendiente
+                    </button>
+                    <button
+                        className={`btn ${filterStatus === 'En Preparación' ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setFilterStatus('En Preparación')}
+                    >
+                        En Preparación
+                    </button>
+                    <button
+                        className={`btn ${filterStatus === 'Listo' ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setFilterStatus('Listo')}
+                    >
+                        Listo
+                    </button>
+                    <button
+                        className={`btn ${filterStatus === 'Entregado' ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setFilterStatus('Entregado')}
+                    >
+                        Entregado
+                    </button>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, color: '#4b5563', marginRight: '0.5rem' }}>Entrega:</span>
+                    <button
+                        className={`btn ${filterShipping === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setFilterShipping('all')}
+                    >
+                        Todos
+                    </button>
+                    <button
+                        className={`btn ${filterShipping === 'shipping' ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setFilterShipping('shipping')}
+                    >
+                        Con Envío
+                        <Package size={14} style={{ marginLeft: '0.5rem' }} />
+                    </button>
+                    <button
+                        className={`btn ${filterShipping === 'pickup' ? 'btn-primary' : 'btn-secondary'}`}
+                        onClick={() => setFilterShipping('pickup')}
+                    >
+                        Sin Envío / Retiro
+                        <Store size={14} style={{ marginLeft: '0.5rem' }} />
+                    </button>
+                </div>
             </div>
 
             <div className="table-container">

@@ -3,12 +3,41 @@
     min-height: 100vh;
 }
 
+/* Global Sidebar Styles */
 .sidebar {
     width: 250px;
     background-color: var(--white);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    transition: width 0.3s ease-in-out;
+    overflow-x: hidden;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed {
+    width: 60px;
+    /* Slightly wider for better touch target/visual balance */
+}
+
+/* Centering items in collapsed state */
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+}
+
+.sidebar.collapsed .sidebar-header {
+    padding: 1rem 0.5rem;
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-header img,
+.sidebar.collapsed .user-role {
+    display: none;
 }
 
 .sidebar-header {
@@ -55,6 +84,15 @@
     color: var(--primary-color);
 }
 
+/* Ensure icons are always visible and correct size */
+.sidebar .nav-item svg {
+    width: 25px;
+    height: 25px;
+    min-width: 25px;
+    min-height: 25px;
+    flex-shrink: 0;
+}
+
 .sidebar-footer {
     padding: 1rem;
     border-top: 1px solid var(--border-color);
@@ -82,4 +120,62 @@
     flex: 1;
     overflow-y: auto;
     background-color: var(--bg-color);
+    min-width: 0;
+    /* Prevent flex blowout from wide children */
+}
+
+/* Mobile Responsive Styles */
+@media (min-width: 769px) {
+    .sidebar-toggle-btn {
+        display: none !important;
+    }
+}
+
+.mobile-menu-btn {
+    display: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.sidebar-overlay {
+    display: none;
+}
+
+@media (max-width: 768px) {
+
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        /* Ensure full height explicitly along with top */
+        z-index: 1050;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.expanded {
+        width: 250px;
+    }
+
+    /* Overlay only needed on mobile when expanded if it covers content */
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+    }
+
+    /* Reset main content width logic for mobile */
+    .main-content {
+        width: 100%;
+        margin-left: 60px;
+        /* Push content to clear mini sidebar */
+    }
 }

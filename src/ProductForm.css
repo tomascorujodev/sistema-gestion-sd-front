@@ -108,3 +108,10 @@
 .btn-secondary:hover {
     background-color: #f9fafb;
 }
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}

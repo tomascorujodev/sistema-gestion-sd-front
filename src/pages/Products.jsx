@@ -305,16 +305,7 @@ export default function Products() {
 
             {/* Pagination Controls - Consistent with Reports */}
             {totalRecords > 0 && (
-                <div style={{
-                    marginTop: '2rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: 'white',
-                    padding: '1rem',
-                    borderRadius: '0.5rem',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                }}>
+                <div className="pagination-controls">
                     {/* Page Size Selector */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <label style={{ fontSize: '0.9rem', color: '#64748b' }}>Mostrar:</label>

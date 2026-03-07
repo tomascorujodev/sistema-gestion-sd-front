@@ -5,7 +5,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import '../Products.css'; // Reuse table styles
 import '../Orders.css'; // Specific styles
 
-export default function Orders() {
+export default function Orders({ isSubComponent = false }) {
     const [orders, setOrders] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
     const [products, setProducts] = useState([]);
@@ -175,7 +175,7 @@ export default function Orders() {
     if (error) return <div className="error-message">{error}</div>;
 
     return (
-        <div className="container">
+        <div className={isSubComponent ? "" : "container"}>
             <ConfirmationModal
                 isOpen={statusModal.show}
                 onClose={() => setStatusModal({ ...statusModal, show: false })}
@@ -186,13 +186,24 @@ export default function Orders() {
                 isDestructive={false}
             />
 
-            <div className="page-header">
-                <h1>Pedidos Proveedores</h1>
-                <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
-                    <Plus size={16} style={{ marginRight: '0.5rem' }} />
-                    Nuevo Pedido
-                </button>
-            </div>
+            {!isSubComponent && (
+                <div className="page-header">
+                    <h1>Pedidos Proveedores</h1>
+                    <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+                        <Plus size={16} style={{ marginRight: '0.5rem' }} />
+                        Nuevo Pedido
+                    </button>
+                </div>
+            )}
+
+            {isSubComponent && (
+                <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+                        <Plus size={16} style={{ marginRight: '0.5rem' }} />
+                        Nuevo Pedido
+                    </button>
+                </div>
+            )}
 
             <div className="table-container">
                 <table className="data-table">
@@ -264,48 +275,46 @@ export default function Orders() {
                             <h2>Nuevo Pedido a Proveedor</h2>
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
-                        <form onSubmit={handleCreateOrder} className="modal-form">
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Sucursal</label>
-                                    <select
-                                        value={newOrder.branch}
-                                        onChange={(e) => setNewOrder({ ...newOrder, branch: e.target.value })}
-                                        className="input-field"
-                                        required
-                                    >
-                                        <option value="Sucursal Principal">Sucursal Principal</option>
-                                        <option value="Independencia">Independencia</option>
-                                        <option value="Tucuman">Tucumán</option>
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Proveedor</label>
-                                    <select
-                                        value={newOrder.supplierId}
-                                        onChange={(e) => setNewOrder({ ...newOrder, supplierId: e.target.value })}
-                                        required
-                                        className="input-field"
-                                    >
-                                        <option value="">Seleccione un proveedor</option>
-                                        {suppliers.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Método de Pago</label>
-                                    <select
-                                        value={newOrder.paymentMethod}
-                                        onChange={(e) => setNewOrder({ ...newOrder, paymentMethod: e.target.value })}
-                                        className="input-field"
-                                    >
-                                        <option value="Efectivo">Efectivo</option>
-                                        <option value="Transferencia">Transferencia</option>
-                                        <option value="Cheque">Cheque</option>
-                                        <option value="Cuenta Corriente">Cuenta Corriente</option>
-                                    </select>
-                                </div>
+                        <form onSubmit={handleCreateOrder} className="modal-form single-column-form">
+                            <div className="form-group">
+                                <label>Sucursal</label>
+                                <select
+                                    value={newOrder.branch}
+                                    onChange={(e) => setNewOrder({ ...newOrder, branch: e.target.value })}
+                                    className="input-field"
+                                    required
+                                >
+                                    <option value="Sucursal Principal">Sucursal Principal</option>
+                                    <option value="Independencia">Independencia</option>
+                                    <option value="Tucuman">Tucumán</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>Proveedor</label>
+                                <select
+                                    value={newOrder.supplierId}
+                                    onChange={(e) => setNewOrder({ ...newOrder, supplierId: e.target.value })}
+                                    required
+                                    className="input-field"
+                                >
+                                    <option value="">Seleccione un proveedor</option>
+                                    {suppliers.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>Método de Pago</label>
+                                <select
+                                    value={newOrder.paymentMethod}
+                                    onChange={(e) => setNewOrder({ ...newOrder, paymentMethod: e.target.value })}
+                                    className="input-field"
+                                >
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                    <option value="Cheque">Cheque</option>
+                                    <option value="Cuenta Corriente">Cuenta Corriente</option>
+                                </select>
                             </div>
 
                             <div className="items-section">
@@ -329,6 +338,7 @@ export default function Orders() {
 
                                 <div className="form-row items-input-row">
                                     <div className="form-group" style={{ flex: 2 }}>
+                                        <label>Producto</label>
                                         <select
                                             value={newItem.productId}
                                             onChange={(e) => {
@@ -360,6 +370,7 @@ export default function Orders() {
                                         </select>
                                     </div>
                                     <div className="form-group">
+                                        <label>Cantidad</label>
                                         <input
                                             type="number"
                                             placeholder="Cant."
@@ -369,6 +380,7 @@ export default function Orders() {
                                         />
                                     </div>
                                     <div className="form-group">
+                                        <label>Precio Unit.</label>
                                         <input
                                             type="number"
                                             placeholder="Precio Unit."
@@ -387,7 +399,6 @@ export default function Orders() {
                                         <tr>
                                             <th>Producto</th>
                                             <th>Cant.</th>
-                                            <th>Cant.</th>
                                             <th>P. Venta</th>
                                             <th>Costo Est.</th>
                                             <th>Subtotal</th>
@@ -398,7 +409,6 @@ export default function Orders() {
                                         {newOrder.items.map((item, index) => (
                                             <tr key={index}>
                                                 <td>{item.productName}</td>
-                                                <td>{item.quantity}</td>
                                                 <td>{item.quantity}</td>
                                                 <td>${item.salePrice?.toFixed(2)}</td>
                                                 <td>${item.unitPrice}</td>

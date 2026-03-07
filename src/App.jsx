@@ -21,6 +21,7 @@ import Dashboard from './pages/Dashboard';
 import MaintenanceOperator from './pages/MaintenanceOperator';
 import MiVetShopSync from './pages/MiVetShopSync';
 import Shortages from './pages/Shortages';
+import Suppliers from './pages/Suppliers';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
               <Route path="/cash-register-log" element={<CashRegisterLog />} />
               <Route path="/design" element={<Design />} />
               <Route path="/branches" element={<Branches />} />
+              <Route path="/suppliers" element={<Suppliers />} />
             </Route>
           </Route>
 

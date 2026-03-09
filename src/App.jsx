@@ -43,6 +43,7 @@ function App() {
               <Route path="/customer-orders" element={<CustomerOrders />} />
               <Route path="/maintenance-operator" element={<MaintenanceOperator />} />
               <Route path="/shortages" element={<Shortages />} />
+              <Route path="/suppliers" element={<Suppliers />} />
               <Route path="/mi-vet-shop" element={<MiVetShopSync />} />
             </Route>
           </Route>
@@ -56,7 +57,6 @@ function App() {
               <Route path="/cash-register-log" element={<CashRegisterLog />} />
               <Route path="/design" element={<Design />} />
               <Route path="/branches" element={<Branches />} />
-              <Route path="/suppliers" element={<Suppliers />} />
             </Route>
           </Route>
 

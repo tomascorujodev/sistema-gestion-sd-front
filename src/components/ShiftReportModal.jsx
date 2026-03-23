@@ -51,8 +51,9 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
 
             // 2. Fetch Cash Register Data
             const registerRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/cashregister`);
+            const registers = Array.isArray(registerRes.data) ? registerRes.data : (registerRes.data.items || []);
             const today = new Date().toISOString().split('T')[0];
-            const register = registerRes.data.find(r => r.date.startsWith(today));
+            const register = registers.find(r => r.date.startsWith(today));
             setCashRegisterData(register);
 
             // Auto-populate Total Sales if register exists

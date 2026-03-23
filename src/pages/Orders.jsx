@@ -329,9 +329,10 @@ export default function Orders({ isSubComponent = false }) {
                                             className="input-field"
                                         >
                                             <option value="">Todas las Categorías</option>
-                                            {categories.map(cat => (
-                                                <option key={cat} value={cat}>{cat}</option>
-                                            ))}
+                                            {categories.map(cat => {
+                                                const catName = (typeof cat === 'object') ? (cat.name || cat.Name || '') : cat;
+                                                return <option key={catName} value={catName}>{catName}</option>;
+                                            })}
                                         </select>
                                     </div>
                                 </div>

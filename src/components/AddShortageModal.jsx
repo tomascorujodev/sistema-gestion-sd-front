@@ -4,45 +4,38 @@ import { X, Save, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AddShortageModal({ isOpen, onClose, onSuccess, initialData = null }) {
-    const { user } = useAuth();
     const [suppliers, setSuppliers] = useState([]);
-    const [formData, setFormData] = useState({
+    const [generalData, setGeneralData] = useState({
         date: new Date().toISOString().split('T')[0],
         supplierId: '',
         invoiceNumber: '',
-        missingProduct: '',
-        quantity: 1,
-        note: '',
         branch: '' // For Admins
     });
+    const [items, setItems] = useState([
+        { missingProduct: '', quantity: 1, note: '' }
+    ]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (isOpen) {
             fetchSuppliers();
-            // Reset form or use initialData
             if (initialData) {
-                setFormData({
+                setGeneralData({
                     date: initialData.entryDate ? new Date(initialData.entryDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                     supplierId: initialData.supplierId || '',
                     invoiceNumber: initialData.invoiceNumber || '',
-                    missingProduct: '',
-                    quantity: 1,
-                    note: '',
                     branch: ''
                 });
             } else {
-                setFormData({
+                setGeneralData({
                     date: new Date().toISOString().split('T')[0],
                     supplierId: '',
                     invoiceNumber: '',
-                    missingProduct: '',
-                    quantity: 1,
-                    note: '',
                     branch: ''
                 });
             }
+            setItems([{ missingProduct: '', quantity: 1, note: '' }]);
             setError('');
         }
     }, [isOpen, initialData]);
@@ -57,12 +50,25 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess, initialDa
         }
     };
 
-    const handleChange = (e) => {
+    const handleGeneralChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setGeneralData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleItemChange = (index, field, value) => {
+        const newItems = [...items];
+        newItems[index][field] = value;
+        setItems(newItems);
+    };
+
+    const addItem = () => {
+        setItems([...items, { missingProduct: '', quantity: 1, note: '' }]);
+    };
+
+    const removeItem = (index) => {
+        if (items.length > 1) {
+            setItems(items.filter((_, i) => i !== index));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -70,30 +76,43 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess, initialDa
         setLoading(true);
         setError('');
 
-        if (!formData.supplierId) {
+        if (!generalData.supplierId) {
             setError('Seleccione un proveedor.');
             setLoading(false);
             return;
         }
 
-        if (user.role === 'Admin' && !formData.branch) {
+        if (user.role === 'Admin' && !generalData.branch) {
             setError('Seleccione una sucursal.');
             setLoading(false);
             return;
         }
 
+        // Validate items
+        const hasEmptyProduct = items.some(item => !item.missingProduct.trim());
+        if (hasEmptyProduct) {
+            setError('Todos los productos deben tener un nombre.');
+            setLoading(false);
+            return;
+        }
+
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/shortages`, {
-                ...formData,
-                supplierId: parseInt(formData.supplierId),
-                quantity: parseInt(formData.quantity)
-            });
+            const payload = {
+                ...generalData,
+                supplierId: parseInt(generalData.supplierId),
+                items: items.map(item => ({
+                    ...item,
+                    quantity: parseInt(item.quantity)
+                }))
+            };
+
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/shortages/bulk`, payload);
             setLoading(false);
             onSuccess();
             onClose();
         } catch (err) {
-            console.error('Error creating shortage:', err);
-            setError(err.response?.data || 'Error al guardar el faltante.');
+            console.error('Error creating shortages:', err);
+            setError(err.response?.data || 'Error al guardar los faltantes.');
             setLoading(false);
         }
     };
@@ -102,9 +121,9 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess, initialDa
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-content" style={{ maxWidth: '650px' }}>
                 <div className="modal-header">
-                    <h2>Registrar Faltante</h2>
+                    <h2>Registrar Faltantes</h2>
                     <button onClick={onClose} className="close-btn">
                         <X size={24} />
                     </button>
@@ -119,101 +138,124 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess, initialDa
                             </div>
                         )}
 
-                        <div className="form-group">
-                            <label>Fecha</label>
-                            <input
-                                type="date"
-                                name="date"
-                                value={formData.date}
-                                onChange={handleChange}
-                                required
-                                className="input-field"
-                            />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="form-group">
+                                <label>Fecha</label>
+                                <input
+                                    type="date"
+                                    name="date"
+                                    value={generalData.date}
+                                    onChange={handleGeneralChange}
+                                    required
+                                    className="input-field"
+                                />
+                            </div>
+
+                            {user?.role === 'Admin' && (
+                                <div className="form-group">
+                                    <label>Sucursal</label>
+                                    <select
+                                        name="branch"
+                                        value={generalData.branch}
+                                        onChange={handleGeneralChange}
+                                        required
+                                        className="input-field"
+                                    >
+                                        <option value="">Seleccione Sucursal</option>
+                                        <option value="Tucuman">Tucumán</option>
+                                        <option value="Independencia">Independencia</option>
+                                        <option value="Sucursal Principal">Sucursal Principal</option>
+                                    </select>
+                                </div>
+                            )}
                         </div>
 
-                        {user?.role === 'Admin' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem' }}>
                             <div className="form-group">
-                                <label>Sucursal</label>
+                                <label>Proveedor</label>
                                 <select
-                                    name="branch"
-                                    value={formData.branch}
-                                    onChange={handleChange}
+                                    name="supplierId"
+                                    value={generalData.supplierId}
+                                    onChange={handleGeneralChange}
                                     required
                                     className="input-field"
                                 >
-                                    <option value="">Seleccione Sucursal</option>
-                                    <option value="Tucuman">Tucumán</option>
-                                    <option value="Independencia">Independencia</option>
-                                    <option value="Sucursal Principal">Sucursal Principal</option>
+                                    <option value="">Seleccione un proveedor...</option>
+                                    {suppliers.map(sup => (
+                                        <option key={sup.id} value={sup.id}>{sup.name}</option>
+                                    ))}
                                 </select>
                             </div>
-                        )}
 
-                        <div className="form-group">
-                            <label>Proveedor</label>
-                            <select
-                                name="supplierId"
-                                value={formData.supplierId}
-                                onChange={handleChange}
-                                required
-                                className="input-field"
-                            >
-                                <option value="">Seleccione un proveedor...</option>
-                                {suppliers.map(sup => (
-                                    <option key={sup.id} value={sup.id}>{sup.name}</option>
-                                ))}
-                            </select>
+                            <div className="form-group">
+                                <label>Nº Factura</label>
+                                <input
+                                    type="text"
+                                    name="invoiceNumber"
+                                    value={generalData.invoiceNumber}
+                                    onChange={handleGeneralChange}
+                                    placeholder="Ej: 0001-12345678"
+                                    required
+                                    className="input-field"
+                                />
+                            </div>
                         </div>
 
-                        <div className="form-group">
-                            <label>Nº Factura</label>
-                            <input
-                                type="text"
-                                name="invoiceNumber"
-                                value={formData.invoiceNumber}
-                                onChange={handleChange}
-                                placeholder="Ej: 0001-12345678"
-                                required
-                                className="input-field"
-                            />
-                        </div>
+                        <div style={{ marginTop: '1.5rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h3 style={{ margin: 0, fontSize: '1rem' }}>Productos Faltantes</h3>
+                                <button type="button" onClick={addItem} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>
+                                    + Agregar Producto
+                                </button>
+                            </div>
 
-                        <div className="form-group">
-                            <label>Producto Faltante</label>
-                            <input
-                                type="text"
-                                name="missingProduct"
-                                value={formData.missingProduct}
-                                onChange={handleChange}
-                                placeholder="Nombre del producto"
-                                required
-                                className="input-field"
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Cantidad</label>
-                            <input
-                                type="number"
-                                name="quantity"
-                                value={formData.quantity}
-                                onChange={handleChange}
-                                min="1"
-                                required
-                                className="input-field"
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Nota (Opcional)</label>
-                            <textarea
-                                name="note"
-                                value={formData.note}
-                                onChange={handleChange}
-                                placeholder="Detalles adicionales..."
-                                className="input-field"
-                                rows="3"
-                            />
+                            {items.map((item, index) => (
+                                <div key={index} style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', position: 'relative' }}>
+                                    {items.length > 1 && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeItem(index)} 
+                                            style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', color: '#9ca3af', border: 'none', background: 'none', cursor: 'pointer' }}
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    )}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 0.8fr', gap: '1rem' }}>
+                                        <div className="form-group">
+                                            <label>Producto</label>
+                                            <input
+                                                type="text"
+                                                value={item.missingProduct}
+                                                onChange={(e) => handleItemChange(index, 'missingProduct', e.target.value)}
+                                                placeholder="Nombre del producto"
+                                                required
+                                                className="input-field"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Cantidad</label>
+                                            <input
+                                                type="number"
+                                                value={item.quantity}
+                                                onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                                                min="1"
+                                                required
+                                                className="input-field"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-group" style={{ marginBottom: 0 }}>
+                                        <label>Nota (Opcional)</label>
+                                        <input
+                                            type="text"
+                                            value={item.note || ''}
+                                            onChange={(e) => handleItemChange(index, 'note', e.target.value)}
+                                            placeholder="Detalles adicionales..."
+                                            className="input-field"
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
@@ -225,7 +267,7 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess, initialDa
                             {loading ? 'Guardando...' : (
                                 <>
                                     <Save size={18} />
-                                    Guardar
+                                    Guardar Todo
                                 </>
                             )}
                         </button>

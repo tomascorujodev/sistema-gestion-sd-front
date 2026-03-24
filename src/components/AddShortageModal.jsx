@@ -4,6 +4,7 @@ import { X, Save, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AddShortageModal({ isOpen, onClose, onSuccess, initialData = null }) {
+    const { user } = useAuth();
     const [suppliers, setSuppliers] = useState([]);
     const [generalData, setGeneralData] = useState({
         date: new Date().toISOString().split('T')[0],

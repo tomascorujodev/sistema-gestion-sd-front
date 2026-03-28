@@ -170,7 +170,8 @@ export default function Branches() {
                             <button onClick={() => setIsAddModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleAddUser} className="modal-form">
-                            <div className="form-group">
+                            <div className="modal-body">
+                                <div className="form-group">
                                 <label>Nombre de Usuario</label>
                                 <input
                                     type="text"
@@ -214,6 +215,7 @@ export default function Branches() {
                                     <option value="Tucuman">Tucumán</option>
                                 </select>
                             </div>
+                            </div>
                             <div className="modal-footer">
                                 <button type="button" onClick={() => setIsAddModalOpen(false)} className="btn btn-secondary">Cancelar</button>
                                 <button type="submit" className="btn btn-primary">Crear Usuario</button>
@@ -233,7 +235,8 @@ export default function Branches() {
                             <button onClick={() => setIsPasswordModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleChangePassword} className="modal-form">
-                            <div className="form-group">
+                            <div className="modal-body">
+                                <div className="form-group">
                                 <label>Nueva Contraseña</label>
                                 <input
                                     type="password"
@@ -252,6 +255,7 @@ export default function Branches() {
                                     required
                                     className="input-field"
                                 />
+                            </div>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="btn btn-secondary">Cancelar</button>

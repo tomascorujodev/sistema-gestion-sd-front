@@ -130,7 +130,7 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess, initialDa
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className="modal-form single-column-form">
                     <div className="modal-body">
                         {error && (
                             <div style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -257,7 +257,8 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess, initialDa
                                     </div>
                                 </div>
                             ))}
-                        </div>
+                    </div>
+
                     </div>
 
                     <div className="modal-footer">

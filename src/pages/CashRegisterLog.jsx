@@ -172,7 +172,8 @@ export default function CashRegisterLog() {
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form">
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+                            <div className="modal-body">
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
                                 {/* Financial Info */}
                                 <div className="form-group">
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -269,6 +270,7 @@ export default function CashRegisterLog() {
                                     rows="3"
                                     style={{ resize: 'vertical' }}
                                 />
+                            </div>
                             </div>
 
                             <div className="modal-footer">

@@ -326,7 +326,8 @@ export default function EmployeeManagement() {
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleSave} className="modal-form">
-                            <div className="form-group">
+                            <div className="modal-body">
+                                <div className="form-group">
                                 <label>Nombre</label>
                                 <input
                                     type="text"
@@ -357,6 +358,7 @@ export default function EmployeeManagement() {
                                     className="input-field"
                                 />
                             </div>
+                            </div>
                             <div className="modal-footer">
                                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">Cancelar</button>
                                 <button type="submit" className="btn btn-primary">Guardar</button>
@@ -374,7 +376,8 @@ export default function EmployeeManagement() {
                             <button onClick={() => setIsShiftModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleSaveShift} className="modal-form">
-                            <div className="form-group">
+                            <div className="modal-body">
+                                <div className="form-group">
                                 <label>Inicio del Turno</label>
                                 <input
                                     type="datetime-local"
@@ -403,6 +406,7 @@ export default function EmployeeManagement() {
                                     />
                                     Marcado como Auto-Cierre
                                 </label>
+                            </div>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" onClick={() => setIsShiftModalOpen(false)} className="btn btn-secondary">Cancelar</button>

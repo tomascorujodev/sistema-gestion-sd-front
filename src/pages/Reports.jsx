@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FileText, Search, Filter, ChevronDown, ChevronUp, DollarSign, AlertCircle, Package, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { FileText, Plus, Search, Filter, ChevronDown, ChevronUp, DollarSign, AlertCircle, Package, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Trash2 } from 'lucide-react';
 import '../Products.css';
+import ShiftReportModal from '../components/ShiftReportModal';
+import { useAuth } from '../context/AuthContext';
 
 export default function Reports() {
+    const { user, employee } = useAuth();
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedReportId, setExpandedReportId] = useState(null);
@@ -38,6 +42,28 @@ export default function Reports() {
         setExpandedReportId(expandedReportId === id ? null : id);
     };
 
+    const isOlderThan7Days = (dateString) => {
+        const reportDate = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - reportDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        return diffDays > 7;
+    };
+
+    const handleDelete = async (id, e) => {
+        e.stopPropagation(); // Prevent expanding the accordion
+        if (window.confirm('¿Está seguro que desea eliminar este informe? Esta acción no se puede deshacer.')) {
+            try {
+                await axios.delete(`${import.meta.env.VITE_API_URL}/api/dailyreports/${id}`);
+                fetchReports();
+            } catch (err) {
+                console.error('Error deleting report:', err);
+                const msg = err.response?.data || 'Error al eliminar el informe.';
+                alert(msg);
+            }
+        }
+    };
+
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
             setCurrentPage(newPage);
@@ -55,12 +81,32 @@ export default function Reports() {
 
     return (
         <div className="container">
-            <div className="page-header">
-                <h1>Historial de Informes</h1>
-                <div style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '0.5rem' }}>
-                    {totalRecords} {totalRecords === 1 ? 'informe' : 'informes'} en total
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <h1>Historial de Informes</h1>
+                    <div style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '0.5rem' }}>
+                        {totalRecords} {totalRecords === 1 ? 'informe' : 'informes'} en total
+                    </div>
                 </div>
+                <button 
+                    onClick={() => setIsReportModalOpen(true)}
+                    className="btn btn-primary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                    <Plus size={18} />
+                    Crear Informe
+                </button>
             </div>
+
+            <ShiftReportModal 
+                isOpen={isReportModalOpen} 
+                onClose={() => {
+                    setIsReportModalOpen(false);
+                    fetchReports();
+                }} 
+                shift={null} 
+                employee={employee} 
+            />
 
             <div className="reports-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {reports.map((report) => (
@@ -115,7 +161,16 @@ export default function Reports() {
                                 )}
                             </div>
 
-                            <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                {isOlderThan7Days(report.date) && (
+                                    <button 
+                                        onClick={(e) => handleDelete(report.id, e)}
+                                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}
+                                        title="Eliminar informe"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                )}
                                 {expandedReportId === report.id ? <ChevronUp size={20} color="#94a3b8" /> : <ChevronDown size={20} color="#94a3b8" />}
                             </div>
                         </div>

@@ -374,7 +374,8 @@ export default function CustomerOrders() {
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form">
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="modal-body">
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
                                     <label>Nombre Cliente *</label>
                                     <input
@@ -476,6 +477,7 @@ export default function CustomerOrders() {
                                         Pagado
                                     </label>
                                 </div>
+                            </div>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">

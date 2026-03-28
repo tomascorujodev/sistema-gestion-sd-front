@@ -51,23 +51,24 @@ export default function PaymentModal({ isOpen, onClose, invoice, onSuccess }) {
                     <button onClick={onClose} className="close-btn">X</button>
                 </div>
 
-                <div style={{ marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: '#64748b' }}>Total Factura:</span>
-                        <span style={{ fontWeight: 600 }}>${invoice.totalAmount.toFixed(2)}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: '#64748b' }}>Pagado:</span>
-                        <span style={{ fontWeight: 600, color: '#10b981' }}>${invoice.paidAmount.toFixed(2)}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #cbd5e1', paddingTop: '0.5rem' }}>
-                        <span style={{ fontWeight: 600 }}>Saldo Pendiente:</span>
-                        <span style={{ fontWeight: 700, color: '#f59e0b' }}>${maxAmount.toFixed(2)}</span>
-                    </div>
-                </div>
-
                 <form onSubmit={handleSubmit} className="modal-form">
-                    <div className="form-group">
+                    <div className="modal-body">
+                        <div style={{ marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span style={{ color: '#64748b' }}>Total Factura:</span>
+                                <span style={{ fontWeight: 600 }}>${invoice.totalAmount.toFixed(2)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span style={{ color: '#64748b' }}>Pagado:</span>
+                                <span style={{ fontWeight: 600, color: '#10b981' }}>${invoice.paidAmount.toFixed(2)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #cbd5e1', paddingTop: '0.5rem' }}>
+                                <span style={{ fontWeight: 600 }}>Saldo Pendiente:</span>
+                                <span style={{ fontWeight: 700, color: '#f59e0b' }}>${maxAmount.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div className="form-group">
                         <label>Monto a Pagar</label>
                         <div style={{ position: 'relative' }}>
                             <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }}>$</span>
@@ -107,6 +108,7 @@ export default function PaymentModal({ isOpen, onClose, invoice, onSuccess }) {
                             className="input-field"
                             rows="2"
                         />
+                    </div>
                     </div>
 
                     <div className="modal-footer">

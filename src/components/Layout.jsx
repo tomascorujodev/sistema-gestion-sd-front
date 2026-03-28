@@ -12,7 +12,7 @@ import EmployeeSelector from './EmployeeSelector';
 import ShiftAutoCloseNotification from './ShiftAutoCloseNotification';
 
 export default function Layout() {
-    const { logout, user, employee, activeShift, endShift, selectEmployee, checkingShift } = useAuth();
+    const { logout, user, employee, activeShift, endShift, selectEmployee, checkingShift, isShiftsEnabled } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [shiftDuration, setShiftDuration] = useState('');
@@ -197,7 +197,7 @@ export default function Layout() {
                     </button>
                 </div>
 
-                {isExpanded && employee && (
+                {isExpanded && employee && isShiftsEnabled && (
                     <div style={{ padding: '0 1rem 1rem' }}>
                         <div style={{
                             padding: '0.5rem',
@@ -218,7 +218,7 @@ export default function Layout() {
                     </div>
                 )}
 
-                {isExpanded && !employee && user?.role === 'Operator' && !checkingShift && (
+                {isExpanded && !employee && user?.role === 'Operator' && !checkingShift && isShiftsEnabled && (
                     <div style={{ padding: '0 1rem 1rem' }}>
                         <button
                             onClick={handleStartShiftClick}
@@ -421,7 +421,7 @@ export default function Layout() {
                     )}
                 </nav>
                 <div className="sidebar-footer">
-                    {employee && user?.role === 'Operator' && (
+                    {employee && user?.role === 'Operator' && isShiftsEnabled && (
                         <button onClick={handleEndShiftClick} className="btn btn-secondary" style={{ width: '100%', marginBottom: '0.5rem' }}>
                             Finalizar Turno
                         </button>

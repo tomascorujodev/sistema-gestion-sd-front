@@ -99,31 +99,30 @@
 /* Modal Form Grid Layout */
 @media (min-width: 768px) {
 
-    .modal-form,
+    .modal-form .modal-body,
     .form-grid-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
     }
 
-    .modal-form .form-group,
+    .modal-form .modal-body .form-group,
     .form-grid-container .form-group {
         margin-bottom: 0;
         /* Let grid gap handle spacing */
     }
 
     .modal-form .modal-footer {
-        grid-column: 1 / -1;
-        /* Span full width */
-        margin-top: 1rem;
+        width: 100%;
+        margin-top: 0;
     }
 
     /* Override grid for single column forms */
-    .single-column-form {
+    .single-column-form .modal-body {
         display: block !important;
     }
 
-    .single-column-form .form-group {
+    .single-column-form .modal-body .form-group {
         margin-bottom: 1rem;
     }
 }

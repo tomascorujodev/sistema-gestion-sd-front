@@ -22,10 +22,10 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
     const [stockCheck, setStockCheck] = useState('');
 
     useEffect(() => {
-        if (isOpen && shift && employee) {
+        if (isOpen) {
             fetchInitialData();
         }
-    }, [isOpen, shift, employee]);
+    }, [isOpen]);
 
     const fetchInitialData = async () => {
         setLoading(true);
@@ -70,24 +70,30 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
 
     // Re-generate report whenever inputs change
     useEffect(() => {
-        if (shift && employee) {
+        if (isOpen) {
             generateReportText();
         }
-    }, [maintenanceTasks, checkedTasks, maintenanceNotes, generalNotes, cashRegisterData, shift, employee, totalSales, complaints, bounces, stockCheck]);
+    }, [isOpen, maintenanceTasks, checkedTasks, maintenanceNotes, generalNotes, cashRegisterData, shift, employee, totalSales, complaints, bounces, stockCheck]);
 
     const generateReportText = () => {
         const dateStr = new Date().toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const formattedDate = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
-        const startTime = new Date(shift.startTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
-        const endTime = new Date(shift.endTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        let text = `*REPORTE DE CIERRE DE TURNO*\n`;
+        let text = `*REPORTE DIARIO OPERACIONAL*\n`;
         text += `📅 *${formattedDate}*\n\n`;
 
-        text += `👤 *Operador:* ${employee.name}\n`;
-        text += `⏰ *Horario:* ${startTime} - ${endTime}\n`;
-        text += `⏱️ *Duración:* ${shift.totalHours?.toFixed(2)} hs\n\n`;
+        const opName = employee ? employee.name : (JSON.parse(sessionStorage.getItem('user'))?.username || 'Desconocido');
+        text += `👤 *Operador:* ${opName}\n`;
+        
+        if (shift) {
+            const startTime = new Date(shift.startTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const endTime = new Date(shift.endTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            text += `⏰ *Horario:* ${startTime} - ${endTime}\n`;
+            text += `⏱️ *Duración:* ${shift.totalHours?.toFixed(2)} hs\n\n`;
+        } else {
+            const currentTime = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            text += `⏰ *Hora de Emisión:* ${currentTime}\n\n`;
+        }
 
         text += `📊 *RESUMEN OPERATIVO*\n`;
         text += `   Ventas Totales: $${Number(totalSales || 0).toLocaleString('es-AR')}\n`;
@@ -179,7 +185,7 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
                 <div className="modal-header" style={{ background: 'var(--primary-color)', color: 'white', padding: '1.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <ClipboardList size={24} />
-                        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Finalizar y Guardar Informe</h2>
+                        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Generar y Guardar Informe</h2>
                     </div>
                 </div>
 
@@ -342,6 +348,13 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
                 </div>
 
                 <div className="modal-footer" style={{ borderTop: '1px solid #e2e8f0', padding: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                    <button
+                        onClick={onClose}
+                        className="btn btn-secondary"
+                        style={{ minWidth: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    >
+                        Cancelar
+                    </button>
                     <button
                         onClick={handleSaveAndClose}
                         className="btn btn-primary"

@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
     const [activeShift, setActiveShift] = useState(null);
     const [shiftAutoClosed, setShiftAutoClosed] = useState(false);
     const [checkingShift, setCheckingShift] = useState(false);
+    const [isShiftsEnabled, setIsShiftsEnabled] = useState(true);
 
     useEffect(() => {
         // Setup Axios Interceptor for 401s
@@ -39,24 +40,37 @@ export const AuthProvider = ({ children }) => {
         const savedEmployee = sessionStorage.getItem('employee');
         const savedShift = sessionStorage.getItem('activeShift');
 
-        if (token && savedUser) {
-            setUser(JSON.parse(savedUser));
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const fetchConfig = async () => {
+            try {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/site-config`);
+                if (res.status === 200 && res.data) {
+                    setIsShiftsEnabled(res.data.isShiftsEnabled !== undefined ? res.data.isShiftsEnabled : true);
+                }
+            } catch (err) {
+                console.error("Error fetching config:", err);
+            }
+        };
 
-            if (savedEmployee) {
-                setEmployee(JSON.parse(savedEmployee));
+        fetchConfig().then(() => {
+            if (token && savedUser) {
+                setUser(JSON.parse(savedUser));
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+                if (savedEmployee) {
+                    setEmployee(JSON.parse(savedEmployee));
+                }
+                if (savedShift) {
+                    setActiveShift(JSON.parse(savedShift));
+                }
             }
-            if (savedShift) {
-                setActiveShift(JSON.parse(savedShift));
-            }
-        }
-        setLoading(false);
+            setLoading(false);
+        });
     }, []);
 
     // Check for active shift on login/refresh
     useEffect(() => {
         const checkActiveShift = async () => {
-            if (user && user.role === 'Operator' && !activeShift) {
+            if (isShiftsEnabled && user && user.role === 'Operator' && !activeShift) {
                 setCheckingShift(true);
                 try {
                     // First, trigger a cleanup of stale shifts
@@ -96,12 +110,12 @@ export const AuthProvider = ({ children }) => {
         };
 
         checkActiveShift();
-    }, [user, activeShift]);
+    }, [user, activeShift, isShiftsEnabled]);
 
     // Auto-close shift monitoring (run more often and even if not logged in to clean up)
     useEffect(() => {
         const checkAutoClose = async () => {
-            if (!user) return; // Need auth to call this
+            if (!isShiftsEnabled || !user) return; // Need auth to call this
             try {
                 const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/shifts/check-auto-close`);
                 const closedShifts = response.data.closedShifts || [];
@@ -124,7 +138,7 @@ export const AuthProvider = ({ children }) => {
         checkAutoClose();
 
         return () => clearInterval(interval);
-    }, [user, employee, activeShift]);
+    }, [user, employee, activeShift, isShiftsEnabled]);
 
     const login = async (username, password) => {
         try {
@@ -233,7 +247,8 @@ export const AuthProvider = ({ children }) => {
             loading,
             checkingShift,
             shiftAutoClosed,
-            setShiftAutoClosed
+            setShiftAutoClosed,
+            isShiftsEnabled
         }}>
             {children}
         </AuthContext.Provider>

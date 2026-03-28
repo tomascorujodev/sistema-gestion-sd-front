@@ -176,7 +176,8 @@ function SuppliersTab() {
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleSave} className="modal-form">
-                            <div className="form-group">
+                            <div className="modal-body">
+                                <div className="form-group">
                                 <label>Nombre</label>
                                 <input
                                     type="text"
@@ -233,6 +234,7 @@ function SuppliersTab() {
                                     onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
                                     className="input-field"
                                 />
+                            </div>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">Cancelar</button>
@@ -389,7 +391,8 @@ function GenericEntityTab({ type, title }) {
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleSave} className="modal-form">
-                            <div className="form-group">
+                            <div className="modal-body">
+                                <div className="form-group">
                                 <label>Nombre</label>
                                 <input
                                     type="text"
@@ -398,6 +401,7 @@ function GenericEntityTab({ type, title }) {
                                     required
                                     className="input-field"
                                 />
+                            </div>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">Cancelar</button>

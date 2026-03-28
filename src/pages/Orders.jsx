@@ -276,7 +276,8 @@ export default function Orders({ isSubComponent = false }) {
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleCreateOrder} className="modal-form single-column-form">
-                            <div className="form-group">
+                            <div className="modal-body">
+                                <div className="form-group">
                                 <label>Sucursal</label>
                                 <select
                                     value={newOrder.branch}
@@ -423,6 +424,7 @@ export default function Orders({ isSubComponent = false }) {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
 
                             <div className="modal-footer">

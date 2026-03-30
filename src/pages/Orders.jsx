@@ -91,7 +91,16 @@ export default function Orders({ isSubComponent = false }) {
     const handleAddItem = () => {
         if (!newItem.productId || newItem.quantity <= 0) return;
 
-        const product = products.find(p => p.id === parseInt(newItem.productId));
+        // Search in both initial products and search results
+        const product = filteredProducts.find(p => p.id === parseInt(newItem.productId)) || 
+                        products.find(p => p.id === parseInt(newItem.productId));
+        
+        if (!product) {
+            console.error('Product not found:', newItem.productId);
+            alert('Error: No se pudo encontrar el producto seleccionado. Intente buscarlo de nuevo.');
+            return;
+        }
+
         const item = {
             ...newItem,
             productName: product.name,

@@ -12,30 +12,19 @@ export default function Orders({ isSubComponent = false }) {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [searchingProducts, setSearchingProducts] = useState(false);
+    const [filteredProducts, setFilteredProducts] = useState([]);
 
-    // Filters
+    // NEW: Search and Edit states
+    const [productSearch, setProductSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
-
-    // Modals
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentEditId, setCurrentEditId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [viewModal, setViewModal] = useState({ show: false, order: null });
     const [statusModal, setStatusModal] = useState({ show: false, id: null, action: '', title: '', message: '' });
-
-    // New Order Form Data
-    const [newOrder, setNewOrder] = useState({
-        supplierId: '',
-        branch: 'Sucursal Principal',
-        paymentMethod: 'Efectivo',
-        items: []
-    });
-
-    // New Item Form Data
-    const [newItem, setNewItem] = useState({
-        productId: '',
-        quantity: 1,
-        unitPrice: 0,
-        details: ''
-    });
+    const [newOrder, setNewOrder] = useState({ supplierId: '', branch: 'Sucursal Principal', paymentMethod: 'Efectivo', items: [] });
+    const [newItem, setNewItem] = useState({ productId: '', quantity: 1, unitPrice: 0, details: '' });
+    const [viewModal, setViewModal] = useState({ show: false, order: null });
 
     useEffect(() => {
         fetchData();
@@ -43,18 +32,18 @@ export default function Orders({ isSubComponent = false }) {
 
     const fetchData = async () => {
         try {
-            const [ordersRes, suppliersRes, productsRes, categoriesRes] = await Promise.all([
+            const [ordersRes, suppliersRes, categoriesRes] = await Promise.all([
                 axios.get(`${import.meta.env.VITE_API_URL}/api/supplierorders`),
                 axios.get(`${import.meta.env.VITE_API_URL}/api/suppliers`),
-                axios.get(`${import.meta.env.VITE_API_URL}/api/products?pageSize=1000`),
                 axios.get(`${import.meta.env.VITE_API_URL}/api/products/categories`)
             ]);
             setOrders(ordersRes.data);
             setSuppliers(suppliersRes.data);
-            // Products endpoint returns paginated object { items: [], ... }
-            setProducts(productsRes.data.items || []);
             setCategories(categoriesRes.data || []);
             setLoading(false);
+            
+            // Initial product fetch
+            fetchProductsList('');
         } catch (err) {
             console.error(err);
             setError('Error al cargar datos');
@@ -62,12 +51,42 @@ export default function Orders({ isSubComponent = false }) {
         }
     };
 
-    const filteredProducts = useMemo(() => {
-        return products.filter(product => {
-            const matchesCategory = categoryFilter ? product.category === categoryFilter : true;
-            return matchesCategory;
-        });
-    }, [products, categoryFilter]);
+    const fetchProductsList = async (searchVal) => {
+        setSearchingProducts(true);
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
+                params: {
+                    pageSize: 100, // Reasonable limit for common searches
+                    search: searchVal,
+                    category: categoryFilter
+                }
+            });
+            setFilteredProducts(response.data.items || []);
+            // Also update all products if it was the initial fetch
+            if (!searchVal && !categoryFilter) {
+                setProducts(response.data.items || []);
+            }
+        } catch (err) {
+            console.error('Error searching products:', err);
+        } finally {
+            setSearchingProducts(false);
+        }
+    };
+
+    // Debounced search effect
+    useEffect(() => {
+        // Skip initial wait if everything is empty
+        if (!productSearch && !categoryFilter) {
+            fetchProductsList('');
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            fetchProductsList(productSearch);
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timer);
+    }, [productSearch, categoryFilter]);
 
     const handleAddItem = () => {
         if (!newItem.productId || newItem.quantity <= 0) return;
@@ -106,6 +125,7 @@ export default function Orders({ isSubComponent = false }) {
                 status: 'Sin Enviar',
                 orderDate: new Date().toISOString(),
                 items: newOrder.items.map(item => ({
+                    id: item.id || 0, // Include ID if editing
                     productId: item.productId,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
@@ -113,13 +133,59 @@ export default function Orders({ isSubComponent = false }) {
                 }))
             };
 
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/supplierorders`, payload);
+            if (isEditing) {
+                payload.id = currentEditId;
+                await axios.put(`${import.meta.env.VITE_API_URL}/api/supplierorders/${currentEditId}`, payload);
+            } else {
+                await axios.post(`${import.meta.env.VITE_API_URL}/api/supplierorders`, payload);
+            }
+
             setIsModalOpen(false);
-            setNewOrder({ supplierId: '', branch: 'Sucursal Principal', paymentMethod: 'Efectivo', items: [] });
+            resetForm();
             fetchData();
         } catch (err) {
             console.error(err);
-            alert('Error al crear el pedido');
+            alert(`Error al ${isEditing ? 'actualizar' : 'crear'} el pedido`);
+        }
+    };
+
+    const resetForm = () => {
+        setNewOrder({ supplierId: '', branch: 'Sucursal Principal', paymentMethod: 'Efectivo', items: [] });
+        setNewItem({ productId: '', quantity: 1, unitPrice: 0, details: '' });
+        setIsEditing(false);
+        setCurrentEditId(null);
+        setProductSearch('');
+    };
+
+    const handleEditOrder = (order) => {
+        setNewOrder({
+            supplierId: order.supplierId,
+            branch: order.branch,
+            paymentMethod: order.paymentMethod,
+            items: (order.items || []).map(item => ({
+                id: item.id,
+                productId: item.productId,
+                productName: item.product?.name || 'Producto',
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                salePrice: item.product?.price || 0,
+                details: item.details
+            }))
+        });
+        setIsEditing(true);
+        setCurrentEditId(order.id);
+        setIsModalOpen(true);
+    };
+
+    const handleDeleteOrder = async (id) => {
+        if (!window.confirm('¿Confirmar que desea anular este pedido? Esta acción no se puede deshacer.')) return;
+        
+        try {
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/supplierorders/${id}`);
+            fetchData();
+        } catch (err) {
+            console.error(err);
+            alert('Error al eliminar el pedido. Verifique que tenga permisos de administrador.');
         }
     };
 
@@ -189,7 +255,7 @@ export default function Orders({ isSubComponent = false }) {
             {!isSubComponent && (
                 <div className="page-header">
                     <h1>Pedidos Proveedores</h1>
-                    <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+                    <button className="btn btn-primary" onClick={() => { resetForm(); setIsModalOpen(true); }}>
                         <Plus size={16} style={{ marginRight: '0.5rem' }} />
                         Nuevo Pedido
                     </button>
@@ -198,7 +264,7 @@ export default function Orders({ isSubComponent = false }) {
 
             {isSubComponent && (
                 <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+                    <button className="btn btn-primary" onClick={() => { resetForm(); setIsModalOpen(true); }}>
                         <Plus size={16} style={{ marginRight: '0.5rem' }} />
                         Nuevo Pedido
                     </button>
@@ -237,9 +303,17 @@ export default function Orders({ isSubComponent = false }) {
                                 <td>
                                     <div className="action-buttons">
                                         {(order.status === 'Sin Enviar' || !order.status) && (
-                                            <button className="icon-btn" title="Marcar Enviado" onClick={() => handleStatusAction(order.id, 'send')}>
-                                                <Truck size={16} />
-                                            </button>
+                                            <>
+                                                <button className="icon-btn" title="Marcar Enviado" onClick={() => handleStatusAction(order.id, 'send')}>
+                                                    <Truck size={16} />
+                                                </button>
+                                                <button className="icon-btn" title="Editar Pedido" onClick={() => handleEditOrder(order)}>
+                                                    <Plus size={16} />
+                                                </button>
+                                                <button className="icon-btn delete-btn" title="Anular Pedido" onClick={() => handleDeleteOrder(order.id)}>
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </>
                                         )}
                                         {order.status === 'Enviado' && (
                                             <button className="icon-btn success-btn" title="Recibir Pedido" onClick={() => handleStatusAction(order.id, 'receive')}>
@@ -272,7 +346,7 @@ export default function Orders({ isSubComponent = false }) {
                 <div className="modal-overlay">
                     <div className="modal-content" style={{ maxWidth: '800px' }}>
                         <div className="modal-header">
-                            <h2>Nuevo Pedido a Proveedor</h2>
+                            <h2>{isEditing ? `Editar Pedido #${currentEditId}` : 'Nuevo Pedido a Proveedor'}</h2>
                             <button onClick={() => setIsModalOpen(false)} className="close-btn">X</button>
                         </div>
                         <form onSubmit={handleCreateOrder} className="modal-form single-column-form">
@@ -321,9 +395,18 @@ export default function Orders({ isSubComponent = false }) {
                             <div className="items-section">
                                 <h3>Agregar Productos</h3>
 
-                                {/* Filters */}
-                                <div className="form-row" style={{ marginBottom: '1rem' }}>
-                                    <div className="form-group" style={{ width: '100%' }}>
+                                {/* Search and Filters */}
+                                <div className="form-row" style={{ marginBottom: '1rem', gap: '1rem' }}>
+                                    <div className="form-group" style={{ flex: 2 }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar por nombre o SKU..."
+                                            value={productSearch}
+                                            onChange={(e) => setProductSearch(e.target.value)}
+                                            className="input-field"
+                                        />
+                                    </div>
+                                    <div className="form-group" style={{ flex: 1 }}>
                                         <select
                                             value={categoryFilter}
                                             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -344,7 +427,7 @@ export default function Orders({ isSubComponent = false }) {
                                         <select
                                             value={newItem.productId}
                                             onChange={(e) => {
-                                                const prod = products.find(p => p.id === parseInt(e.target.value));
+                                                const prod = filteredProducts.find(p => p.id === parseInt(e.target.value)) || products.find(p => p.id === parseInt(e.target.value));
                                                 // Calculate cost based on supplier margin
                                                 let cost = 0;
                                                 if (prod) {
@@ -364,8 +447,12 @@ export default function Orders({ isSubComponent = false }) {
                                                 });
                                             }}
                                             className="input-field"
+                                            disabled={searchingProducts}
                                         >
-                                            <option value="">Seleccione un producto</option>
+                                            <option value="">
+                                                {searchingProducts ? 'Buscando...' : 
+                                                 (filteredProducts.length > 0 ? 'Seleccione un producto' : 'No hay productos que coincidan')}
+                                            </option>
                                             {filteredProducts.map(p => (
                                                 <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
                                             ))}
@@ -428,8 +515,8 @@ export default function Orders({ isSubComponent = false }) {
                             </div>
 
                             <div className="modal-footer">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">Cancelar</button>
-                                <button type="submit" className="btn btn-primary">Crear Pedido</button>
+                                <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="btn btn-secondary">Cancelar</button>
+                                <button type="submit" className="btn btn-primary">{isEditing ? 'Guardar Cambios' : 'Crear Pedido'}</button>
                             </div>
                         </form>
                     </div>

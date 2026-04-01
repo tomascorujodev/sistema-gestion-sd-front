@@ -8,6 +8,7 @@ export default function CustomerOrders() {
     const { user } = useAuth();
     const [orders, setOrders] = useState([]);
     const [employees, setEmployees] = useState([]);
+    const [availableBranches, setAvailableBranches] = useState([]); // NEW
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({
@@ -20,10 +21,12 @@ export default function CustomerOrders() {
         employeeInChargeId: '',
         paymentMode: 'Efectivo',
         salesChannel: 'Tienda',
-        status: 'Pendiente'
+        status: 'Pendiente',
+        branch: user?.branch || 'Sucursal Principal'
     });
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterShipping, setFilterShipping] = useState('all');
+    const [filterBranch, setFilterBranch] = useState('all');
 
     const [viewModal, setViewModal] = useState({ show: false, order: null });
     const [paymentModal, setPaymentModal] = useState({
@@ -39,7 +42,17 @@ export default function CustomerOrders() {
     useEffect(() => {
         fetchOrders();
         fetchEmployees();
+        fetchBranches(); // NEW
     }, []);
+
+    const fetchBranches = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/branches`);
+            setAvailableBranches(response.data);
+        } catch (err) {
+            console.error('Error fetching branches:', err);
+        }
+    };
 
     const showToast = (message, type = 'success') => {
         setToast({ show: true, message, type });
@@ -86,7 +99,8 @@ export default function CustomerOrders() {
                 employeeInChargeId: '',
                 paymentMode: 'Efectivo',
                 salesChannel: 'Tienda',
-                status: 'Pendiente'
+                status: 'Pendiente',
+                branch: user?.branch || 'Sucursal Principal'
             });
         } catch (err) {
             showToast('Error al crear el pedido. Verifique los datos.', 'error');
@@ -162,7 +176,8 @@ export default function CustomerOrders() {
             : filterShipping === 'shipping'
                 ? !!o.addressStreet // Has address => Shipping
                 : !o.addressStreet; // No address => Pickup
-        return matchesStatus && matchesShipping;
+        const matchesBranch = filterBranch === 'all' || o.branch === filterBranch;
+        return matchesStatus && matchesShipping && matchesBranch;
     });
 
     const getStatusColor = (status) => {
@@ -245,6 +260,28 @@ export default function CustomerOrders() {
                         <Store size={14} style={{ marginLeft: '0.5rem' }} />
                     </button>
                 </div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', marginTop: '1rem' }}>
+                    <span style={{ fontWeight: 600, color: '#4b5563', marginRight: '0.5rem' }}>Sucursal:</span>
+                    <select
+                        style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.5rem',
+                            border: '1px solid #cbd5e1',
+                            background: 'white',
+                            color: '#334155',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            outline: 'none'
+                        }}
+                        value={filterBranch}
+                        onChange={(e) => setFilterBranch(e.target.value)}
+                    >
+                        <option value="all">Todas las Sucursales</option>
+                        {availableBranches.map((b, index) => (
+                            <option key={index} value={b}>{b}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="table-container">
@@ -255,6 +292,7 @@ export default function CustomerOrders() {
                             <th>Cliente</th>
                             <th>Teléfono</th>
                             <th>Producto</th>
+                            <th>Sucursal</th>
                             <th>Encargado</th>
                             <th>Canal</th>
                             <th>Monto</th>
@@ -270,6 +308,7 @@ export default function CustomerOrders() {
                                 <td>{order.customerName}</td>
                                 <td>{order.phone}</td>
                                 <td>{order.product}</td>
+                                <td>{order.branch || '-'}</td>
                                 <td>{order.employeeInCharge?.name || '-'}</td>
                                 <td>{order.salesChannel}</td>
                                 <td style={{ fontWeight: 600 }}>${order.amount?.toFixed(2) || '0.00'}</td>
@@ -520,6 +559,10 @@ export default function CustomerOrders() {
                                 <div>
                                     <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Fecha</strong>
                                     <p style={{ margin: 0, fontWeight: 500, color: '#111827' }}>{new Date(viewModal.order.orderDate).toLocaleString('es-AR')}</p>
+                                </div>
+                                <div>
+                                    <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Sucursal</strong>
+                                    <p style={{ margin: 0, fontWeight: 500, color: '#111827' }}>{viewModal.order.branch || '-'}</p>
                                 </div>
                                 <div>
                                     <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Encargado</strong>

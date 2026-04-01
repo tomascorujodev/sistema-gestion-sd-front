@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Clock, User, DollarSign, Package, AlertCircle, Wrench, TrendingUp, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import ConfirmationModal from '../components/ConfirmationModal';
 import '../Products.css';
 
 export default function Dashboard() {
@@ -12,8 +11,6 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [selectedBranch, setSelectedBranch] = useState("Todas");
 
-    // Error Modal State
-    const [errorModal, setErrorModal] = useState({ isOpen: false, message: '' });
 
     useEffect(() => {
         fetchKpis();
@@ -67,20 +64,6 @@ export default function Dashboard() {
         return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount);
     };
 
-    const handleCompleteTask = async (taskId) => {
-        try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/dashboard/maintenance/${taskId}/complete`);
-            fetchKpis(); // Refresh data
-        } catch (err) {
-            console.error('Error completing task:', err);
-            let msg = "Error al completar la tarea. Verifique su conexión o intente nuevamente.";
-            if (err.response && err.response.data) {
-                msg = err.response.data.message || err.response.data;
-                if (typeof msg !== 'string') msg = "Error al completar la tarea.";
-            }
-            setErrorModal({ isOpen: true, message: msg });
-        }
-    };
 
     if (loading) return <div className="loading-container">Cargando tablero...</div>;
 
@@ -282,7 +265,7 @@ export default function Dashboard() {
                                         }}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                                            {/* Checkbox / Status Indicator */}
+                                            {/* Status Indicator (Read-only) */}
                                             {task.isCompleted ? (
                                                 <div style={{ color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                     <div style={{ width: '24px', height: '24px', borderRadius: '4px', background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -290,36 +273,22 @@ export default function Dashboard() {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                user?.role === 'Admin' ? (
-                                                    <div style={{ width: '24px', height: '24px', borderRadius: '4px', border: '2px solid #cbd5e1' }} />
-                                                ) : (
-                                                    <div
-                                                        onClick={() => handleCompleteTask(task.id)}
-                                                        style={{
-                                                            width: '24px',
-                                                            height: '24px',
-                                                            borderRadius: '4px',
-                                                            border: '2px solid #cbd5e1',
-                                                            cursor: 'pointer',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            transition: 'all 0.2s'
-                                                        }}
-                                                        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#16a34a'}
-                                                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
-                                                    />
-                                                )
+                                                <div style={{ width: '24px', height: '24px', borderRadius: '4px', border: '2px solid #cbd5e1' }} />
                                             )}
 
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontWeight: 600, color: task.isCompleted ? '#166534' : '#1e293b', marginBottom: '0.25rem', textDecoration: task.isCompleted ? 'line-through' : 'none' }}>
                                                     {task.description}
                                                 </div>
-                                                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                                                    Frecuencia: {task.frequency === 'Daily' ? 'Diaria' : task.frequency === 'Weekly' ? 'Semanal' : 'Mensual'}
+                                                <div style={{ fontSize: '0.875rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                    <span>Frecuencia: {task.frequency === 'Daily' ? 'Diaria' : task.frequency === 'Weekly' ? 'Semanal' : 'Mensual'}</span>
+                                                    {selectedBranch === "Todas" && task.branch && (
+                                                        <span style={{ background: '#f1f5f9', padding: '0.125rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
+                                                            📍 {task.branch === "Ambas" ? "Todas" : task.branch}
+                                                        </span>
+                                                    )}
                                                     {task.isCompleted && (
-                                                        <span style={{ marginLeft: '0.5rem', color: '#16a34a', fontWeight: 500 }}>
+                                                        <span style={{ color: '#16a34a', fontWeight: 500 }}>
                                                             • Completado por {task.completedBy} ({formatTime(task.completedAt)})
                                                         </span>
                                                     )}
@@ -347,17 +316,6 @@ export default function Dashboard() {
                 </>
             )}
 
-            {/* Error Modal */}
-            <ConfirmationModal
-                isOpen={errorModal.isOpen}
-                onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
-                onConfirm={() => setErrorModal({ ...errorModal, isOpen: false })}
-                title="Error"
-                message={errorModal.message}
-                confirmText="Entendido"
-                isDestructive={true}
-                hideCancel={true}
-            />
         </div>
     );
 }

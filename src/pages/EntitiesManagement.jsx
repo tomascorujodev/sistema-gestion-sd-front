@@ -41,7 +41,7 @@ function SuppliersTab() {
     const [error, setError] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState(null);
-    const [formData, setFormData] = useState({ name: '', contactInfo: '', cuit: '', phone: '', paymentDueDays: 30, marginPercentage: 0 });
+    const [formData, setFormData] = useState({ name: '', contactInfo: '', cuit: '', phone: '', paymentDueDays: 30, marginPercentage: 0, cashCreditNotePercentage: 0 });
     const [deleteModal, setDeleteModal] = useState({ show: false, id: null });
 
     useEffect(() => {
@@ -61,7 +61,7 @@ function SuppliersTab() {
 
     const handleAdd = () => {
         setEditingSupplier(null);
-        setFormData({ name: '', contactInfo: '', cuit: '', phone: '', paymentDueDays: 30, marginPercentage: 0 });
+        setFormData({ name: '', contactInfo: '', cuit: '', phone: '', paymentDueDays: 30, marginPercentage: 0, cashCreditNotePercentage: 0 });
         setIsModalOpen(true);
     };
 
@@ -73,7 +73,8 @@ function SuppliersTab() {
             cuit: supplier.cuit || '',
             phone: supplier.phone || '',
             paymentDueDays: supplier.paymentDueDays || 30,
-            marginPercentage: supplier.marginPercentage || 0
+            marginPercentage: supplier.marginPercentage || 0,
+            cashCreditNotePercentage: supplier.cashCreditNotePercentage || 0
         });
         setIsModalOpen(true);
     };
@@ -139,6 +140,7 @@ function SuppliersTab() {
                             <th>Teléfono</th>
                             <th>Días de Pago</th>
                             <th>Margen (%)</th>
+                            <th>Nota Crédito Contado (%)</th>
                             <th>Información de Contacto</th>
                             <th>Acciones</th>
                         </tr>
@@ -151,6 +153,7 @@ function SuppliersTab() {
                                 <td>{supplier.phone || '-'}</td>
                                 <td>{supplier.paymentDueDays}</td>
                                 <td>{supplier.marginPercentage}%</td>
+                                <td>{supplier.cashCreditNotePercentage || 0}%</td>
                                 <td>{supplier.contactInfo}</td>
                                 <td>
                                     <div className="action-buttons">
@@ -222,6 +225,17 @@ function SuppliersTab() {
                                     step="0.01"
                                     value={formData.marginPercentage}
                                     onChange={(e) => setFormData({ ...formData, marginPercentage: parseFloat(e.target.value) || 0 })}
+                                    required
+                                    className="input-field"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Porc. Nota Crédito Contado (%)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.cashCreditNotePercentage}
+                                    onChange={(e) => setFormData({ ...formData, cashCreditNotePercentage: parseFloat(e.target.value) || 0 })}
                                     required
                                     className="input-field"
                                 />

@@ -144,7 +144,7 @@ export default function CashRegisterLog() {
                                 <td>{item.supplier?.name}</td>
                                 <td>{item.authorizer?.name}</td>
                                 <td style={{ fontWeight: 600, color: '#dc2626' }}>
-                                    -${item.amount.toFixed(2)}
+                                    -${item.amount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </td>
                                 <td>
                                     <button className="icon-btn delete-btn" onClick={() => setDeleteModal({ show: true, id: item.id })}>

@@ -209,7 +209,7 @@ export default function EmployeeManagement() {
                                 >
                                     <td>{employee.name}</td>
                                     <td>{employee.position}</td>
-                                    <td>${employee.hourlyRate.toFixed(2)}/hr</td>
+                                    <td>${employee.hourlyRate.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/hr</td>
                                     <td>
                                         <div className="action-buttons">
                                             <button
@@ -246,21 +246,21 @@ export default function EmployeeManagement() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                 <div>
                                     <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Horas Totales</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>{payroll.totalHours.toFixed(2)}</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>{payroll.totalHours.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                                 </div>
                                 <div>
                                     <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Valor por hora</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>${payroll.hourlyRate.toFixed(2)}</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>${payroll.hourlyRate.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                                 </div>
                                 <div>
                                     <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Ganado</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#059669' }}>${payroll.totalEarned.toFixed(2)}</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#059669' }}>${payroll.totalEarned.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                                 </div>
 
                             </div>
                             <div style={{ padding: '1rem', backgroundColor: '#eef2ff', borderRadius: '0.5rem', textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Balance a pagar</div>
-                                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>${payroll.balance.toFixed(2)}</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>${payroll.balance.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                             </div>
                         </div>
 
@@ -275,7 +275,7 @@ export default function EmployeeManagement() {
                                         </span>
                                         {shift.autoClosed && <span style={{ marginLeft: '0.5rem', color: 'orange', fontWeight: 'bold' }}>(Auto-Cierre)</span>}
                                         <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                                            {shift.totalHours?.toFixed(2) || 0}h - ${shift.totalPay?.toFixed(2) || 0}
+                                            {shift.totalHours.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) || 0}h - ${shift.totalPay.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) || 0}
                                         </div>
                                     </div>
                                     {shift.endTime ? (

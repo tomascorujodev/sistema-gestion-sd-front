@@ -113,13 +113,12 @@ export default function AdminDashboard() {
 
         const expectedBalance = initial + sales - expenses;
         const actualBalance = bills + withdrawals;
-        return (expectedBalance - actualBalance).toFixed(2);
+        return (expectedBalance - actualBalance).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     const calculateTotalWithdrawals = () => {
-        const bills = parseFloat(formData.billCount) || 0;
         const withdrawals = parseFloat(formData.cashWithdrawals) || 0;
-        return (bills + withdrawals).toFixed(2);
+        return withdrawals.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     const handleSubmit = async (e) => {
@@ -211,7 +210,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                         <div style={{ fontSize: '0.875rem', color: '#9a3412', fontWeight: 600 }}>Suma de Sobres No Controlados</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#c2410c' }}>${uncontrolledSum.toFixed(2)}</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#c2410c' }}>${uncontrolledSum.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                     </div>
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#ea580c' }}>
@@ -389,13 +388,13 @@ export default function AdminDashboard() {
                             <tr key={item.id} style={item.isEdited ? { backgroundColor: '#fffbeb' } : {}}>
                                 <td>{new Date(item.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}</td>
                                 <td>{item.shift}</td>
-                                <td>${item.initialBalance.toFixed(2)}</td>
-                                <td>${item.cashSales.toFixed(2)}</td>
-                                <td>${item.expenses.toFixed(2)}</td>
-                                <td>${item.billCount.toFixed(2)}</td>
-                                <td>${item.cashWithdrawals.toFixed(2)}</td>
+                                <td>${item.initialBalance.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                <td>${item.cashSales.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                <td>${item.expenses.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                <td>${item.billCount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                <td>${item.cashWithdrawals.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                 <td style={{ color: item.balanceDifference != 0 ? '#dc2626' : '#059669', fontWeight: 600 }}>
-                                    ${item.balanceDifference.toFixed(2)}
+                                    ${item.balanceDifference.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </td>
                                 <td>{item.withdrawalEmployee?.name || '-'}</td>
                                 <td>

@@ -508,9 +508,9 @@ export default function Orders({ isSubComponent = false }) {
                                             <tr key={index}>
                                                 <td>{item.productName}</td>
                                                 <td>{item.quantity}</td>
-                                                <td>${item.salePrice?.toFixed(2)}</td>
+                                                <td>${item.salePrice.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                                 <td>${item.unitPrice}</td>
-                                                <td>${(item.quantity * item.unitPrice).toFixed(2)}</td>
+                                                <td>${(item.quantity * item.unitPrice).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                                 <td>
                                                     <button type="button" className="icon-btn delete-btn" onClick={() => handleRemoveItem(index)}>
                                                         <Trash2 size={14} />
@@ -598,9 +598,9 @@ export default function Orders({ isSubComponent = false }) {
                                                         {item.product?.sku && <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>SKU: {item.product.sku}</div>}
                                                     </td>
                                                     <td style={{ padding: '0.75rem 1rem', textAlign: 'center', color: '#475569' }}>{item.quantity}</td>
-                                                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: '#475569' }}>${item.unitPrice?.toFixed(2)}</td>
+                                                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: '#475569' }}>${item.unitPrice.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                                     <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 600, color: '#334155' }}>
-                                                        ${(item.quantity * item.unitPrice).toFixed(2)}
+                                                        ${(item.quantity * item.unitPrice).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                                     </td>
                                                 </tr>
                                             ))}

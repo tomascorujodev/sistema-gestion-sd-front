@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { DollarSign, Clock, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function PendingInvoices({ onPayAction }) {
+    const { user } = useAuth();
+    const isOperator = user?.role === 'Operator';
     const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('Pendiente'); // 'All', 'Pendiente', 'Pagado'
@@ -23,8 +26,8 @@ export default function PendingInvoices({ onPayAction }) {
             const response = await axios.get(url);
 
             let data = response.data;
-            if (statusFilter === 'Pendiente') {
-                data = data.filter(i => i.status === 'Pendiente' || i.status === 'Parcial');
+            if (statusFilter !== 'All') {
+                data = data.filter(i => i.status === statusFilter);
             }
 
             setInvoices(data);
@@ -44,6 +47,16 @@ export default function PendingInvoices({ onPayAction }) {
         }
     };
 
+    const handleAssign = async (invoice, field, value) => {
+        try {
+            const updatedInvoice = { ...invoice, [field]: value };
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/supplierinvoices/${invoice.id}`, updatedInvoice);
+            setInvoices(invoices.map(i => i.id === invoice.id ? updatedInvoice : i));
+        } catch (err) {
+            console.error('Error actualizando asignación:', err);
+        }
+    };
+
     return (
         <div className="pending-invoices-container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -56,6 +69,13 @@ export default function PendingInvoices({ onPayAction }) {
                         style={{ fontSize: '0.875rem' }}
                     >
                         Pendientes
+                    </button>
+                    <button
+                        onClick={() => setStatusFilter('Parcial')}
+                        className={`btn ${statusFilter === 'Parcial' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ fontSize: '0.875rem' }}
+                    >
+                        Parciales
                     </button>
                     <button
                         onClick={() => setStatusFilter('Pagado')}
@@ -88,6 +108,8 @@ export default function PendingInvoices({ onPayAction }) {
                                 <th>Importe</th>
                                 <th>Pagado</th>
                                 <th>Saldo</th>
+                                <th>Día</th>
+                                <th>Semana</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -106,13 +128,47 @@ export default function PendingInvoices({ onPayAction }) {
                                                 </div>
                                             </td>
                                             <td>{invoice.supplier?.name}</td>
-                                            <td>{invoice.invoiceNumber}</td>
+                                            <td style={{ maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={invoice.invoiceNumber}>
+                                                {invoice.invoiceNumber}
+                                            </td>
                                             <td>{getStatusBadge(invoice.status)}</td>
-                                            <td style={{ fontWeight: 600 }}>${invoice.totalAmount.toFixed(2)}</td>
-                                            <td style={{ color: '#10b981' }}>${invoice.paidAmount.toFixed(2)}</td>
-                                            <td style={{ color: '#f59e0b', fontWeight: 700 }}>${saldo.toFixed(2)}</td>
+                                            <td style={{ fontWeight: 600 }}>${invoice.totalAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                            <td style={{ color: '#10b981' }}>${invoice.paidAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                            <td style={{ color: '#f59e0b', fontWeight: 700 }}>${saldo.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                             <td>
-                                                {invoice.status !== 'Pagado' && (
+                                                <select
+                                                    value={invoice.assignedDay || ''}
+                                                    onChange={(e) => handleAssign(invoice, 'assignedDay', e.target.value)}
+                                                    className="input-field"
+                                                    style={{ padding: '0.25rem', fontSize: '0.85rem', width: 'auto', backgroundColor: (invoice.status === 'Pagado' || isOperator) ? '#f8fafc' : 'white', cursor: (invoice.status === 'Pagado' || isOperator) ? 'not-allowed' : 'pointer' }}
+                                                    disabled={invoice.status === 'Pagado' || isOperator}
+                                                >
+                                                    <option value="">- Día -</option>
+                                                    <option value="Lunes">Lunes</option>
+                                                    <option value="Martes">Martes</option>
+                                                    <option value="Miércoles">Miércoles</option>
+                                                    <option value="Jueves">Jueves</option>
+                                                    <option value="Viernes">Viernes</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select
+                                                    value={invoice.assignedWeek || ''}
+                                                    onChange={(e) => handleAssign(invoice, 'assignedWeek', e.target.value)}
+                                                    className="input-field"
+                                                    style={{ padding: '0.25rem', fontSize: '0.85rem', width: 'auto', backgroundColor: (invoice.status === 'Pagado' || isOperator) ? '#f8fafc' : 'white', cursor: (invoice.status === 'Pagado' || isOperator) ? 'not-allowed' : 'pointer' }}
+                                                    disabled={invoice.status === 'Pagado' || isOperator}
+                                                >
+                                                    <option value="">- Semana -</option>
+                                                    <option value="Semana 1">Semana 1</option>
+                                                    <option value="Semana 2">Semana 2</option>
+                                                    <option value="Semana 3">Semana 3</option>
+                                                    <option value="Semana 4">Semana 4</option>
+                                                    <option value="Semana 5">Semana 5</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                {invoice.status !== 'Pagado' && !isOperator && (
                                                     <button
                                                         onClick={() => onPayAction(invoice)}
                                                         className="btn btn-sm btn-primary"

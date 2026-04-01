@@ -357,7 +357,7 @@ export default function Products() {
                                 <td>{product.name}</td>
                                 <td>{product.sku}</td>
                                 <td>{product.category}</td>
-                                <td>${product.price.toFixed(2)}</td>
+                                <td>${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                                 <td>{product.stock}</td>
                                 <td>
                                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>

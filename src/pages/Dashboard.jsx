@@ -230,7 +230,7 @@ export default function Dashboard() {
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.85rem', color: '#475569' }}>
                                                         <span>Cierre: {formatTime(branch.lastClosedShift.endTime)}</span>
-                                                        <span>{branch.lastClosedShift.totalHours?.toFixed(1)} hrs</span>
+                                                        <span>{branch.lastClosedShift.totalHours.toLocaleString('es-AR', {minimumFractionDigits: 1, maximumFractionDigits: 1})} hrs</span>
                                                     </div>
                                                 </div>
                                             ) : (

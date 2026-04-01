@@ -311,7 +311,7 @@ export default function CustomerOrders() {
                                 <td>{order.branch || '-'}</td>
                                 <td>{order.employeeInCharge?.name || '-'}</td>
                                 <td>{order.salesChannel}</td>
-                                <td style={{ fontWeight: 600 }}>${order.amount?.toFixed(2) || '0.00'}</td>
+                                <td style={{ fontWeight: 600 }}>${order.amount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) || '0.00'}</td>
                                 <td>
                                     <span className={`status-badge ${order.isPaid ? 'received' : 'pending'}`}>
                                         {order.isPaid ? 'Pagado' : 'Pendiente'}
@@ -550,7 +550,7 @@ export default function CustomerOrders() {
                                 </div>
                                 <div>
                                     <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Monto</strong>
-                                    <p style={{ margin: 0, fontWeight: 600, color: '#111827' }}>${viewModal.order.amount?.toFixed(2) || '0.00'}</p>
+                                    <p style={{ margin: 0, fontWeight: 600, color: '#111827' }}>${viewModal.order.amount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) || '0.00'}</p>
                                 </div>
                                 <div>
                                     <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Producto</strong>
@@ -633,7 +633,7 @@ export default function CustomerOrders() {
                                         <p style={{ margin: '0 0 0.5rem 0', color: '#4b5563' }}>Cliente: {paymentModal.order.customerName}</p>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px dashed #d1d5db' }}>
                                             <span style={{ fontWeight: 600, color: '#374151' }}>Importe:</span>
-                                            <span style={{ fontWeight: 800, fontSize: '1.25rem', color: '#9D3E3C' }}>${paymentModal.order.amount?.toFixed(2) || '0.00'}</span>
+                                            <span style={{ fontWeight: 800, fontSize: '1.25rem', color: '#9D3E3C' }}>${paymentModal.order.amount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) || '0.00'}</span>
                                         </div>
                                     </div>
 

@@ -34,7 +34,7 @@ export default function PaymentModal({ isOpen, onClose, invoice, onSuccess }) {
                 const updated = { ...line, [field]: value };
                 if (field === 'paymentMethod') {
                     if (value === 'Nota de crédito contado') {
-                        updated.amount = (invoice.totalAmount * ccPercent / 100).toFixed(2);
+                        updated.amount = (invoice.totalAmount * ccPercent / 100).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                         updated.auto = true;
                     } else {
                         updated.auto = false;
@@ -96,15 +96,15 @@ export default function PaymentModal({ isOpen, onClose, invoice, onSuccess }) {
                         <div style={{ marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                 <span style={{ color: '#64748b' }}>Total Factura:</span>
-                                <span style={{ fontWeight: 600 }}>${invoice.totalAmount.toFixed(2)}</span>
+                                <span style={{ fontWeight: 600 }}>${invoice.totalAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                 <span style={{ color: '#64748b' }}>Pagado Histórico:</span>
-                                <span style={{ fontWeight: 600, color: '#10b981' }}>${invoice.paidAmount.toFixed(2)}</span>
+                                <span style={{ fontWeight: 600, color: '#10b981' }}>${invoice.paidAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #cbd5e1', paddingTop: '0.5rem' }}>
                                 <span style={{ fontWeight: 600 }}>Saldo Pendiente General:</span>
-                                <span style={{ fontWeight: 700, color: '#f59e0b' }}>${maxAmount.toFixed(2)}</span>
+                                <span style={{ fontWeight: 700, color: '#f59e0b' }}>${maxAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                             </div>
                         </div>
 
@@ -168,11 +168,11 @@ export default function PaymentModal({ isOpen, onClose, invoice, onSuccess }) {
                             <div style={{ background: sumLines === maxAmount ? '#d1fae5' : '#f8fafc', padding: '1rem', borderRadius: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', border: '1px solid', borderColor: sumLines === maxAmount ? '#10b981' : '#cbd5e1', fontSize: '1.05rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <span>Suma a Abonar Hoy:</span>
-                                    <strong>${sumLines.toFixed(2)}</strong>
+                                    <strong>${sumLines.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', color: sumLines === maxAmount ? '#10b981' : '#ea580c' }}>
                                     <span>Saldo que quedará pendiente de la factura:</span>
-                                    <span><strong>${Math.max(0, maxAmount - sumLines).toFixed(2)}</strong></span>
+                                    <span><strong>${Math.max(0, maxAmount - sumLines).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></span>
                                 </div>
                             </div>
                         )}

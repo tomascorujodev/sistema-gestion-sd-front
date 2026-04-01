@@ -67,13 +67,12 @@ export default function CashRegister() {
 
         const expectedBalance = initial + sales - expenses;
         const actualBalance = bills + withdrawals;
-        return (expectedBalance - actualBalance).toFixed(2);
+        return (expectedBalance - actualBalance).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     };
 
     const calculateTotalWithdrawals = () => {
-        const bills = parseFloat(formData.billCount) || 0;
         const withdrawals = parseFloat(formData.cashWithdrawals) || 0;
-        return (bills + withdrawals).toFixed(2);
+        return withdrawals.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     };
 
     const handleSubmit = async (e) => {
@@ -148,14 +147,14 @@ export default function CashRegister() {
                         </div>
                         <div>
                             <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Cobranzas de Pedidos Web Hoy</div>
-                            <div style={{ fontWeight: 700, fontSize: '1.25rem' }}>${summary.totalAmount.toFixed(2)}</div>
+                            <div style={{ fontWeight: 700, fontSize: '1.25rem' }}>${summary.totalAmount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '1.5rem' }}>
                         {summary.details.map(d => (
                             <div key={d.method} style={{ textAlign: 'right' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{d.method}</div>
-                                <div style={{ fontWeight: 600 }}>${d.total.toFixed(2)} ({d.count})</div>
+                                <div style={{ fontWeight: 600 }}>${d.total.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ({d.count})</div>
                             </div>
                         ))}
                     </div>
@@ -271,9 +270,6 @@ export default function CashRegister() {
                             <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Suma de Retiros en Efectivo</div>
                             <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>
                                 ${calculateTotalWithdrawals()}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                                Arqueo de billetes + Retiros en efectivo
                             </div>
                         </div>
                     </div>

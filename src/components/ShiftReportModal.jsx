@@ -89,7 +89,7 @@ export default function ShiftReportModal({ isOpen, onClose, shift, employee }) {
             const startTime = new Date(shift.startTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
             const endTime = new Date(shift.endTime).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
             text += `⏰ *Horario:* ${startTime} - ${endTime}\n`;
-            text += `⏱️ *Duración:* ${shift.totalHours?.toFixed(2)} hs\n\n`;
+            text += `⏱️ *Duración:* ${shift.totalHours.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} hs\n\n`;
         } else {
             const currentTime = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
             text += `⏰ *Hora de Emisión:* ${currentTime}\n\n`;

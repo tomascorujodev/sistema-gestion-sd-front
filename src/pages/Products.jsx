@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit, Trash2, Upload, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ImageOff, Loader } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ImageOff, Loader, Search } from 'lucide-react';
 import ProductForm from '../components/ProductForm';
 import ConfirmationModal from '../components/ConfirmationModal';
 import '../Products.css';
@@ -22,6 +22,10 @@ export default function Products() {
     const [cleanupModal, setCleanupModal] = useState({ show: false });
     const [cleanupLoading, setCleanupLoading] = useState(false);
     const [cleanupResult, setCleanupResult] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [categorySearchQuery, setCategorySearchQuery] = useState('');
+    const [categoryToggleModal, setCategoryToggleModal] = useState({ show: false, categoryName: '', willBeActive: false });
 
     useEffect(() => {
         fetchCategories();
@@ -29,7 +33,7 @@ export default function Products() {
 
     useEffect(() => {
         fetchProducts();
-    }, [page, pageSize, categoryFilter]);
+    }, [page, pageSize, categoryFilter, searchQuery]);
 
     const fetchCategories = async () => {
         try {
@@ -47,7 +51,8 @@ export default function Products() {
                 params: {
                     page,
                     pageSize,
-                    category: categoryFilter
+                    category: categoryFilter,
+                    search: searchQuery
                 }
             });
             setProducts(response.data.items || []);
@@ -64,6 +69,26 @@ export default function Products() {
 
     const handleImportClick = () => {
         document.getElementById('fileInput').click();
+    };
+
+    const handleToggleClick = (categoryName, currentIsActive) => {
+        setCategoryToggleModal({
+            show: true,
+            categoryName,
+            willBeActive: !currentIsActive
+        });
+    };
+
+    const confirmToggleCategory = async () => {
+        try {
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/products/categories/${encodeURIComponent(categoryToggleModal.categoryName)}/toggle`);
+            setCategoryToggleModal({ show: false, categoryName: '', willBeActive: false });
+            await fetchCategories(); // Refresh local list state
+            await fetchProducts(); // Refresh products too (might need it if we change visibility, or just logic)
+        } catch (err) {
+            console.error('Error toggling category:', err);
+            alert('Error al cambiar el estado de la categoría');
+        }
     };
 
     const handleCleanupBrokenImages = async () => {
@@ -179,7 +204,8 @@ export default function Products() {
         setPage(1); // Reset to first page when changing page size
     };
 
-    if (loading) return <div className="loading-container">Cargando productos...</div>;
+    // Only show full-screen loader on initial empty load, so we don't unmount the search input while typing.
+    if (loading && products.length === 0 && !searchQuery && !categoryFilter) return <div className="loading-container">Cargando productos...</div>;
     if (error) return <div className="error-message">{error}</div>;
 
     return (
@@ -213,12 +239,22 @@ export default function Products() {
                 confirmText="Limpiar"
                 isDestructive={false}
             />
+            {/* Modal de confirmación de categorías */}
+            <ConfirmationModal
+                isOpen={categoryToggleModal.show}
+                onClose={() => setCategoryToggleModal({ show: false, categoryName: '', willBeActive: false })}
+                onConfirm={confirmToggleCategory}
+                title={categoryToggleModal.willBeActive ? "Activar Categoría" : "Desactivar Categoría"}
+                message={`¿Está seguro de que desea ${categoryToggleModal.willBeActive ? "activar" : "desactivar"} la categoría "${categoryToggleModal.categoryName}"? ${categoryToggleModal.willBeActive ? "Esta categoría y sus productos volverán a verse en la tienda pública." : "Esta categoría y todos sus productos dejarán de verse en la tienda pública hasta que vuelvas a activarla."}`}
+                confirmText={categoryToggleModal.willBeActive ? "Activar" : "Desactivar"}
+                isDestructive={!categoryToggleModal.willBeActive}
+            />
 
             {/* Modal de resultado de limpieza */}
             {cleanupResult && (
                 <div style={{
                     position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999
                 }}>
                     <div style={{
                         background: 'white', borderRadius: '0.75rem', padding: '2rem',
@@ -275,19 +311,41 @@ export default function Products() {
             )}
 
             <div className="page-header">
-                <h1>Productos</h1>
-                <div style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '0.5rem' }}>
-                    {totalRecords} {totalRecords === 1 ? 'producto' : 'productos'} en total
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <h1>Productos</h1>
+                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
+                        {totalRecords} {totalRecords === 1 ? 'producto' : 'productos'} en total
+                    </div>
                 </div>
-                <div className="header-actions">
+                <div className="header-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            type="text"
+                            placeholder="Buscar producto..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setPage(1);
+                            }}
+                            style={{
+                                padding: '0.5rem 0.5rem 0.5rem 2rem',
+                                borderRadius: '0.25rem',
+                                border: '1px solid #d1d5db',
+                                width: '200px'
+                            }}
+                        />
+                        <div style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
+                            <Search size={16} />
+                        </div>
+                    </div>
                     <select
                         className="form-select"
                         value={categoryFilter}
                         onChange={(e) => {
                             setCategoryFilter(e.target.value);
-                            setPage(1); // Reset to first page on filter change
+                            setPage(1);
                         }}
-                        style={{ marginRight: '1rem', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #d1d5db' }}
+                        style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #d1d5db' }}
                     >
                         <option value="">Todas las Categorías</option>
                         {categories.map(cat => {
@@ -295,6 +353,15 @@ export default function Products() {
                             return <option key={catName} value={catName}>{catName}</option>;
                         })}
                     </select>
+
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => setIsCategoryModalOpen(true)}
+                        style={{ backgroundColor: '#64748b', color: 'white', display: 'flex', alignItems: 'center' }}
+                    >
+                        Gestionar Categorías
+                    </button>
+
                     <input
                         type="file"
                         id="fileInput"
@@ -307,15 +374,15 @@ export default function Products() {
                         onClick={() => setCleanupModal({ show: true })}
                         disabled={cleanupLoading}
                         title="Detectar y limpiar imágenes que ya no existen en Cloudinary"
-                        style={{ marginRight: '1rem', backgroundColor: '#f59e0b', color: 'white', display: 'flex', alignItems: 'center' }}
+                        style={{ backgroundColor: '#f59e0b', color: 'white', display: 'flex', alignItems: 'center' }}
                     >
                         {cleanupLoading
                             ? <Loader size={16} style={{ marginRight: '0.5rem', animation: 'spin 1s linear infinite' }} />
                             : <ImageOff size={16} style={{ marginRight: '0.5rem' }} />
                         }
-                        {cleanupLoading ? 'Verificando...' : 'Limpiar imágenes rotas'}
+                        {cleanupLoading ? 'Verificando...' : 'Limpiar rotas'}
                     </button>
-                    <button className="btn btn-secondary" onClick={handleImportClick} style={{ marginRight: '1rem', backgroundColor: '#28a745', color: 'white' }}>
+                    <button className="btn btn-secondary" onClick={handleImportClick} style={{ backgroundColor: '#28a745', color: 'white' }}>
                         <Upload size={16} style={{ marginRight: '0.5rem' }} />
                         Importar Excel
                     </button>
@@ -526,6 +593,104 @@ export default function Products() {
                     onSave={handleSave}
                     onCancel={() => setIsModalOpen(false)}
                 />
+            )}
+
+            {isCategoryModalOpen && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999
+                }}>
+                    <div style={{
+                        background: 'white', borderRadius: '0.75rem', padding: '2rem',
+                        maxWidth: '500px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                        maxHeight: '80vh', display: 'flex', flexDirection: 'column'
+                    }}>
+                        <h2 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: '#1e293b' }}>
+                            Gestionar Categorías
+                        </h2>
+                        <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                            Activa o desactiva las categorías. Las categorías inactivas y sus productos no se mostrarán en la tienda web pública.
+                        </p>
+                        
+                        <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
+                            <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar categoría..."
+                                    value={categorySearchQuery}
+                                    onChange={(e) => setCategorySearchQuery(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem 0.5rem 0.5rem 2rem',
+                                        borderRadius: '0.25rem',
+                                        border: '1px solid #d1d5db',
+                                    }}
+                                />
+                                <div style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
+                                    <Search size={16} />
+                                </div>
+                            </div>
+                            {categories.filter(c => {
+                                const q = categorySearchQuery.toLowerCase();
+                                const name = typeof c === 'object' ? c.name : c;
+                                return name.toLowerCase().includes(q);
+                            }).map((cat, i) => {
+                                const name = typeof cat === 'object' ? cat.name : cat;
+                                const isActive = typeof cat === 'object' ? cat.isActive : true;
+                                
+                                return (
+                                    <div key={i} style={{
+                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                        padding: '0.75rem', borderBottom: '1px solid #f1f5f9'
+                                    }}>
+                                        <span style={{ fontWeight: '500', color: isActive ? '#0f172a' : '#94a3b8' }}>
+                                            {name}
+                                        </span>
+                                        <button
+                                            onClick={() => handleToggleClick(name, isActive)}
+                                            style={{
+                                                padding: '0.25rem 0.75rem',
+                                                borderRadius: '9999px',
+                                                fontSize: '0.75rem',
+                                                fontWeight: '600',
+                                                background: isActive ? '#dcfce7' : '#fee2e2',
+                                                color: isActive ? '#166534' : '#991b1b',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            {isActive ? 'Activa' : 'Inactiva'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                            {categories.length === 0 && (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                                    No hay categorías disponibles
+                                </div>
+                            )}
+                            {categories.length > 0 && categories.filter(c => {
+                                const q = categorySearchQuery.toLowerCase();
+                                const name = typeof c === 'object' ? c.name : c;
+                                return name.toLowerCase().includes(q);
+                            }).length === 0 && (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                                    No hay resultados para tu búsqueda
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => setIsCategoryModalOpen(false)}
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

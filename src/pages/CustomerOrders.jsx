@@ -582,6 +582,14 @@ export default function CustomerOrders() {
                                         {viewModal.order.isPaid ? 'Pagado' : 'Pendiente'}
                                     </span>
                                 </div>
+                                {viewModal.order.shippingCost > 0 && (
+                                    <div>
+                                        <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Costo de Envío</strong>
+                                        <span style={{ color: '#0ea5e9', fontWeight: 700, fontSize: '0.875rem' }}>
+                                            ${viewModal.order.shippingCost.toLocaleString('es-AR', {minimumFractionDigits: 2})}
+                                        </span>
+                                    </div>
+                                )}
                                 <div>
                                     <strong style={{ display: 'block', color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Estado del Pedido</strong>
                                     <span

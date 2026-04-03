@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import '../Products.css';
 
 export default function Dashboard() {
-    const { user } = useAuth();
+    const { user, isShiftsEnabled } = useAuth();
     const [branchStatus, setBranchStatus] = useState([]);
     const [kpis, setKpis] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -186,7 +186,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Admin: Branch Status - MOVED BACK HERE */}
-                    {user?.role === 'Admin' && branchStatus.length > 0 && (
+                    {user?.role === 'Admin' && branchStatus.length > 0 && isShiftsEnabled && (
                         <>
                             <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: '#475569' }}>Estado de Sucursales</h2>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>

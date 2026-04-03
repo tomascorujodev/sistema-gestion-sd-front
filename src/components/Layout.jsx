@@ -345,6 +345,23 @@ export default function Layout() {
                                 >
                                     Cupones
                                 </Link>
+                                {user?.role === 'Admin' && (
+                                    <Link
+                                        to="/shipping"
+                                        className={location.pathname === '/shipping' ? 'sub-nav-item active' : 'sub-nav-item'}
+                                        style={{
+                                            textDecoration: 'none',
+                                            color: location.pathname === '/shipping' ? 'var(--primary-color)' : '#6b7280',
+                                            fontSize: '0.875rem',
+                                            padding: '0.5rem',
+                                            borderRadius: '0.375rem',
+                                            background: location.pathname === '/shipping' ? '#eef2ff' : 'transparent',
+                                            display: 'block'
+                                        }}
+                                    >
+                                        Envíos
+                                    </Link>
+                                )}
                             </div>
                         )}
                     </div>

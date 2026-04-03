@@ -14,7 +14,8 @@ export default function ProductForm({ product, onSave, onCancel }) {
         description: '',
         isActive: true,
         isOnOffer: false,
-        offerPrice: ''
+        offerPrice: '',
+        excludeFromCoupons: false
     });
 
     useEffect(() => {
@@ -29,7 +30,8 @@ export default function ProductForm({ product, onSave, onCancel }) {
                 description: product.description || '',
                 isActive: product.isActive !== undefined ? product.isActive : true,
                 isOnOffer: product.isOnOffer || false,
-                offerPrice: product.offerPrice || ''
+                offerPrice: product.offerPrice || '',
+                excludeFromCoupons: product.excludeFromCoupons || false
             });
         }
     }, [product]);
@@ -164,17 +166,31 @@ export default function ProductForm({ product, onSave, onCancel }) {
                                     <span className="text-sm">Producto Activo</span>
                                 </label>
                             </div>
-                            <div className="form-group checkbox-group">
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="isOnOffer"
-                                        checked={formData.isOnOffer}
-                                        onChange={handleChange}
-                                        className="checkbox-input"
-                                    />
-                                    <span className="text-sm">En Oferta</span>
-                                </label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <div className="form-group checkbox-group">
+                                    <label className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            name="isOnOffer"
+                                            checked={formData.isOnOffer}
+                                            onChange={handleChange}
+                                            className="checkbox-input"
+                                        />
+                                        <span className="text-sm">En Oferta</span>
+                                    </label>
+                                </div>
+                                <div className="form-group checkbox-group">
+                                    <label className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            name="excludeFromCoupons"
+                                            checked={formData.excludeFromCoupons}
+                                            onChange={handleChange}
+                                            className="checkbox-input"
+                                        />
+                                        <span className="text-sm">Excluir de Cupones</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 

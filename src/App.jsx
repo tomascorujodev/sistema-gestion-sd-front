@@ -12,6 +12,7 @@ import Promotions from './pages/Promotions';
 import Coupons from './pages/Coupons';
 import AdminDashboard from './pages/AdminDashboard';
 import Design from './pages/Design';
+import ShippingConfig from './pages/ShippingConfig';
 import EmployeeManagement from './pages/EmployeeManagement';
 import CashRegister from './pages/CashRegister';
 import CashRegisterLog from './pages/CashRegisterLog';
@@ -56,6 +57,7 @@ function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/cash-register-log" element={<CashRegisterLog />} />
               <Route path="/design" element={<Design />} />
+              <Route path="/shipping" element={<ShippingConfig />} />
               <Route path="/branches" element={<Branches />} />
             </Route>
           </Route>

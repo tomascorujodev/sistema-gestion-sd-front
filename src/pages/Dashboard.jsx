@@ -149,7 +149,7 @@ export default function Dashboard() {
                                     <span style={{ fontSize: '0.875rem', opacity: 0.9 }}>Tareas Pendientes</span>
                                     <Wrench size={24} style={{ opacity: 0.8 }} />
                                 </div>
-                                <div style={{ fontSize: '2rem', fontWeight: 700 }}>{kpis.maintenanceTasks.filter(t => !t.isCompleted).length}</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 700 }}>{kpis.pendingMaintenance.filter(t => !t.isCompleted).length}</div>
                                 <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>
                                     Mantenimiento
                                 </div>
@@ -244,14 +244,14 @@ export default function Dashboard() {
                     )}
 
                     {/* Maintenance Tasks List */}
-                    {kpis.maintenanceTasks && kpis.maintenanceTasks.length > 0 && (
+                    {kpis.pendingMaintenance && kpis.pendingMaintenance.length > 0 && (
                         <div style={{ marginBottom: '2rem' }}>
                             <h3 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <AlertCircle size={20} color="#f59e0b" />
                                 Tareas de Mantenimiento
                             </h3>
                             <div style={{ background: 'white', borderRadius: '0.75rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                                {kpis.maintenanceTasks.map((task, index) => (
+                                {kpis.pendingMaintenance.map((task, index) => (
                                     <div
                                         key={task.id}
                                         style={{

@@ -1,0 +1,115 @@
+/* Vencimientos de Alimentos */
+
+.ve-quickform {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+    background: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.ve-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+.ve-field-grow {
+    flex: 1 1 220px;
+}
+
+.ve-field-sm {
+    min-width: 100px;
+    max-width: 120px;
+}
+
+.ve-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.ve-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.ve-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 0.4rem 0.75rem;
+    color: #6b7280;
+    flex: 1 1 240px;
+    max-width: 360px;
+}
+
+.ve-search input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    background: transparent;
+}
+
+.ve-branch-filter {
+    max-width: 220px;
+}
+
+/* Badges de estado */
+.ve-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ve-badge-expired {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.ve-badge-soon {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.ve-badge-ok {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.ve-row-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+    .ve-quickform {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ve-field,
+    .ve-field-sm,
+    .ve-field-grow {
+        max-width: none;
+        width: 100%;
+    }
+}

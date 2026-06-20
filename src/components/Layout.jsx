@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, CheckSquare, Tag, Clock, DollarSign, ChevronDown, ChevronRight, ChevronLeft, AlertOctagon, Menu } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, CheckSquare, Tag, Clock, DollarSign, ChevronDown, ChevronRight, ChevronLeft, AlertOctagon, Menu, CalendarClock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import '../Layout.css';
@@ -244,6 +244,10 @@ export default function Layout() {
                     <Link to="/suppliers" className={isActive('/suppliers')}>
                         <ShoppingCart size={28} />
                         {isExpanded && <span>Proveedores</span>}
+                    </Link>
+                    <Link to="/vencimientos" className={isActive('/vencimientos')}>
+                        <CalendarClock size={28} />
+                        {isExpanded && <span>Vencimientos</span>}
                     </Link>
                     <Link to="/reports" className={isActive('/reports')}>
                         <FileText size={28} />

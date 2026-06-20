@@ -23,6 +23,7 @@ import MaintenanceOperator from './pages/MaintenanceOperator';
 import MiVetShopSync from './pages/MiVetShopSync';
 import Shortages from './pages/Shortages';
 import Suppliers from './pages/Suppliers';
+import FoodExpirations from './pages/FoodExpirations';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
               <Route path="/shortages" element={<Shortages />} />
               <Route path="/suppliers" element={<Suppliers />} />
               <Route path="/mi-vet-shop" element={<MiVetShopSync />} />
+              <Route path="/vencimientos" element={<FoodExpirations />} />
             </Route>
           </Route>
 

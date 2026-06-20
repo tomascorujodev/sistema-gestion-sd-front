@@ -30,7 +30,7 @@ export default function Dashboard() {
         try {
             let url = `${import.meta.env.VITE_API_URL}/api/dashboard/kpis`;
             if (user?.role === 'Admin' && selectedBranch !== "Todas") {
-                url += `?branchName=${encodeURIComponent(selectedBranch)}`;
+                url += `?branch=${encodeURIComponent(selectedBranch)}`;
             }
             const response = await axios.get(url);
             setKpis(response.data);

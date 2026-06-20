@@ -79,17 +79,26 @@
     white-space: nowrap;
 }
 
+/* Vencido */
 .ve-badge-expired {
     background: #fee2e2;
     color: #b91c1c;
 }
 
-.ve-badge-soon {
-    background: #fef3c7;
-    color: #b45309;
+/* Rojo: vencido hoy o ≤ 3 meses */
+.ve-badge-red {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
-.ve-badge-ok {
+/* Amarillo: entre 3 y 6 meses */
+.ve-badge-yellow {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+/* Verde: más de 6 meses */
+.ve-badge-green {
     background: #dcfce7;
     color: #15803d;
 }

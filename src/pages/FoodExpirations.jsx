@@ -10,6 +10,9 @@ const API = `${import.meta.env.VITE_API_URL}/api/foodexpirations`;
 const emptyForm = { productName: '', expirationDate: '', quantity: '', lotNotes: '', branch: '' };
 
 // Estado segun fecha de vencimiento vs hoy.
+// Rojo  : vencido o ≤ 3 meses (90 días)
+// Amarillo: entre 3 y 6 meses (91–180 días)
+// Verde  : más de 6 meses (> 180 días)
 function getStatus(expirationDate) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -17,9 +20,22 @@ function getStatus(expirationDate) {
     exp.setHours(0, 0, 0, 0);
     const diffDays = Math.round((exp - today) / 86400000);
 
-    if (diffDays < 0) return { key: 'expired', label: 'Vencido', days: diffDays };
-    if (diffDays <= 7) return { key: 'soon', label: diffDays === 0 ? 'Vence hoy' : `Vence en ${diffDays}d`, days: diffDays };
-    return { key: 'ok', label: 'Vigente', days: diffDays };
+    if (diffDays < 0)   return { key: 'expired', label: 'Vencido', days: diffDays };
+    if (diffDays === 0) return { key: 'red',      label: 'Vence hoy', days: diffDays };
+    if (diffDays <= 90) {
+        // ≤ 3 meses → rojo
+        const months = Math.floor(diffDays / 30);
+        const label  = months >= 1 ? `${months} mes${months > 1 ? 'es' : ''}` : `${diffDays}d`;
+        return { key: 'red', label: `Vence en ${label}`, days: diffDays };
+    }
+    if (diffDays <= 180) {
+        // 3–6 meses → amarillo
+        const months = Math.floor(diffDays / 30);
+        return { key: 'yellow', label: `Vence en ${months} meses`, days: diffDays };
+    }
+    // > 6 meses → verde
+    const months = Math.floor(diffDays / 30);
+    return { key: 'green', label: `Vence en ${months} meses`, days: diffDays };
 }
 
 export default function FoodExpirations() {

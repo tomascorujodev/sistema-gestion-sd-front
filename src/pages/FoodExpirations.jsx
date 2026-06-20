@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import ConfirmationModal from '../components/ConfirmationModal';
 import '../FoodExpirations.css';
 
-const API = 'http://localhost:5027/api/foodexpirations';
+const API = `${import.meta.env.VITE_API_URL}/api/foodexpirations`;
 
 const emptyForm = { productName: '', expirationDate: '', quantity: '', lotNotes: '', branch: '' };
 
@@ -60,7 +60,7 @@ export default function FoodExpirations() {
     // Lista de sucursales para el selector del admin (derivada de usuarios).
     const fetchBranches = async () => {
         try {
-            const res = await axios.get('http://localhost:5027/api/users');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`);
             const list = [...new Set((res.data || []).map(u => u.branch).filter(Boolean))].sort();
             setBranches(list);
         } catch (err) {

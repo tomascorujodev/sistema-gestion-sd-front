@@ -20,7 +20,7 @@ export default function Branches() {
         username: '',
         password: '',
         role: 'Operator',
-        branch: 'Sucursal Principal'
+        branch: 'Sucursal Tucumán'
     });
 
     const [passwordData, setPasswordData] = useState({
@@ -53,7 +53,7 @@ export default function Branches() {
             await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, newUser);
             setNotification({ show: true, title: 'Éxito', message: 'Usuario creado correctamente', isError: false });
             setIsAddModalOpen(false);
-            setNewUser({ username: '', password: '', role: 'Operator', branch: 'Sucursal Principal' });
+            setNewUser({ username: '', password: '', role: 'Operator', branch: 'Sucursal Tucumán' });
             fetchUsers();
         } catch (err) {
             console.error(err);
@@ -210,9 +210,8 @@ export default function Branches() {
                                     onChange={(e) => setNewUser({ ...newUser, branch: e.target.value })}
                                     className="input-field"
                                 >
-                                    <option value="Sucursal Principal">Sucursal Principal</option>
-                                    <option value="Independencia">Independencia</option>
-                                    <option value="Tucuman">Tucumán</option>
+                                    <option value="Sucursal Tucumán">Tucumán</option>
+                                    <option value="Sucursal Independencia">Independencia</option>
                                 </select>
                             </div>
                             </div>

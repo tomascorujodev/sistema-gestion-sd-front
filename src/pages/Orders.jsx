@@ -22,7 +22,7 @@ export default function Orders({ isSubComponent = false }) {
     const [currentEditId, setCurrentEditId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [statusModal, setStatusModal] = useState({ show: false, id: null, action: '', title: '', message: '' });
-    const [newOrder, setNewOrder] = useState({ supplierId: '', branch: 'Sucursal Principal', paymentMethod: 'Efectivo', items: [] });
+    const [newOrder, setNewOrder] = useState({ supplierId: '', branch: 'Sucursal Tucumán', paymentMethod: 'Efectivo', items: [] });
     const [newItem, setNewItem] = useState({ productId: '', quantity: 1, unitPrice: 0, details: '' });
     const [viewModal, setViewModal] = useState({ show: false, order: null });
 
@@ -159,7 +159,7 @@ export default function Orders({ isSubComponent = false }) {
     };
 
     const resetForm = () => {
-        setNewOrder({ supplierId: '', branch: 'Sucursal Principal', paymentMethod: 'Efectivo', items: [] });
+        setNewOrder({ supplierId: '', branch: 'Sucursal Tucumán', paymentMethod: 'Efectivo', items: [] });
         setNewItem({ productId: '', quantity: 1, unitPrice: 0, details: '' });
         setIsEditing(false);
         setCurrentEditId(null);
@@ -368,9 +368,8 @@ export default function Orders({ isSubComponent = false }) {
                                     className="input-field"
                                     required
                                 >
-                                    <option value="Sucursal Principal">Sucursal Principal</option>
-                                    <option value="Independencia">Independencia</option>
-                                    <option value="Tucuman">Tucumán</option>
+                                    <option value="Sucursal Tucumán">Tucumán</option>
+                                    <option value="Sucursal Independencia">Independencia</option>
                                 </select>
                             </div>
                             <div className="form-group">

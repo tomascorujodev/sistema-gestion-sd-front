@@ -163,9 +163,8 @@ export default function AddShortageModal({ isOpen, onClose, onSuccess, initialDa
                                         className="input-field"
                                     >
                                         <option value="">Seleccione Sucursal</option>
-                                        <option value="Tucuman">Tucumán</option>
-                                        <option value="Independencia">Independencia</option>
-                                        <option value="Sucursal Principal">Sucursal Principal</option>
+                                        <option value="Sucursal Tucumán">Tucumán</option>
+                                        <option value="Sucursal Independencia">Independencia</option>
                                     </select>
                                 </div>
                             )}

@@ -124,8 +124,8 @@ export default function Maintenance() {
                             className="input-field"
                         >
                             <option value="Ambas">Ambas</option>
-                            <option value="Independencia">Independencia</option>
-                            <option value="Tucuman">Tucuman</option>
+                            <option value="Sucursal Independencia">Independencia</option>
+                            <option value="Sucursal Tucumán">Tucumán</option>
                         </select>
                     </div>
                     <button type="submit" className="btn btn-primary">Agregar</button>

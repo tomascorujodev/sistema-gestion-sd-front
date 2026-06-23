@@ -10,7 +10,7 @@ export default function MaintenanceOperator() {
     const [request, setRequest] = useState({
         item: '',
         details: '',
-        branch: 'Sucursal Principal'
+        branch: 'Sucursal Tucumán'
     });
     const [infoModal, setInfoModal] = useState({ show: false, title: '', message: '', isError: false });
 
@@ -55,7 +55,7 @@ export default function MaintenanceOperator() {
                 message: 'La solicitud de insumos ha sido enviada correctamente.',
                 isError: false
             });
-            setRequest({ item: '', details: '', branch: 'Sucursal Principal' });
+            setRequest({ item: '', details: '', branch: 'Sucursal Tucumán' });
         } catch (err) {
             setInfoModal({
                 show: true,
@@ -155,9 +155,8 @@ export default function MaintenanceOperator() {
                                     value={request.branch}
                                     onChange={(e) => setRequest({ ...request, branch: e.target.value })}
                                 >
-                                    <option value="Sucursal Principal">Sucursal Principal</option>
-                                    <option value="Independencia">Independencia</option>
-                                    <option value="Tucuman">Tucumán</option>
+                                    <option value="Sucursal Tucumán">Tucumán</option>
+                                    <option value="Sucursal Independencia">Independencia</option>
                                 </select>
                             </div>
 

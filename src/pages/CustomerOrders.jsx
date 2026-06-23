@@ -123,6 +123,23 @@ export default function CustomerOrders() {
         }
     };
 
+    const handleBranchChange = async (order, newBranch) => {
+        const prevBranch = order.branch;
+        // Optimista
+        setOrders(prev => prev.map(o => o.id === order.id ? { ...o, branch: newBranch } : o));
+        try {
+            // PUT completo: mandamos toda la orden (el backend marca Modified
+            // todas las columnas) cambiando solo branch. Sacamos la nav anidada.
+            const payload = { ...order, branch: newBranch };
+            delete payload.employeeInCharge;
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/customerorders/${order.id}`, payload);
+            showToast('Sucursal actualizada');
+        } catch (err) {
+            setOrders(prev => prev.map(o => o.id === order.id ? { ...o, branch: prevBranch } : o));
+            showToast('Error al actualizar la sucursal.', 'error');
+        }
+    };
+
     const handleViewDetails = (order) => {
         setViewModal({ show: true, order });
     };
@@ -312,7 +329,26 @@ export default function CustomerOrders() {
                                 <td>{order.customerName}</td>
                                 <td>{order.phone}</td>
                                 <td>{order.product}</td>
-                                <td>{order.branch || '-'}</td>
+                                <td>
+                                    <select
+                                        value={order.branch || ''}
+                                        onChange={(e) => handleBranchChange(order, e.target.value)}
+                                        style={{
+                                            padding: '0.15rem 0.25rem',
+                                            borderRadius: '0.25rem',
+                                            border: '1px solid #cbd5e1',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 500,
+                                            background: 'white',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <option value="">Sin asignar</option>
+                                        {availableBranches.map((b, i) => (
+                                            <option key={i} value={b}>{b}</option>
+                                        ))}
+                                    </select>
+                                </td>
                                 <td>{order.employeeInCharge?.name || '-'}</td>
                                 <td>{order.salesChannel}</td>
                                 <td style={{ fontWeight: 600 }}>${order.amount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) || '0.00'}</td>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, Eye, Package, DollarSign, CheckCircle, Check, Store } from 'lucide-react';
+import { Plus, Trash2, Eye, Package, DollarSign, CheckCircle, Check, Store, X } from 'lucide-react';
 import '../Products.css';
 import { useAuth } from '../context/AuthContext';
 
@@ -42,17 +42,14 @@ export default function CustomerOrders() {
     useEffect(() => {
         fetchOrders();
         fetchEmployees();
-        fetchBranches(); // NEW
     }, []);
 
-    const fetchBranches = async () => {
-        try {
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/branches`);
-            setAvailableBranches(response.data);
-        } catch (err) {
-            console.error('Error fetching branches:', err);
-        }
-    };
+    // Sucursales para el filtro: se derivan de los pedidos (no del endpoint
+    // /api/users/branches, que es Admin-only y daba 403 a operadores).
+    useEffect(() => {
+        const fromOrders = orders.map(o => o.branch).filter(Boolean);
+        setAvailableBranches(Array.from(new Set(['Sucursal Tucumán', 'Sucursal Independencia', ...fromOrders])));
+    }, [orders]);
 
     const showToast = (message, type = 'success') => {
         setToast({ show: true, message, type });
@@ -351,7 +348,7 @@ export default function CustomerOrders() {
                                         <button className="icon-btn" title="Ver detalles" onClick={() => handleViewDetails(order)}>
                                             <Eye size={16} />
                                         </button>
-                                        {order.status === 'Listo' && (
+                                        {order.status === 'Listo' && user?.role === 'Admin' && (
                                             <button
                                                 className="icon-btn"
                                                 title="Eliminar pedido"

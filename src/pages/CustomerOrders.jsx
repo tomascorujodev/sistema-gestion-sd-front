@@ -22,7 +22,7 @@ export default function CustomerOrders() {
         paymentMode: 'Efectivo',
         salesChannel: 'Tienda',
         status: 'Pendiente',
-        branch: user?.branch || 'Sucursal Principal'
+        branch: user?.branch || ''
     });
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterShipping, setFilterShipping] = useState('all');
@@ -50,6 +50,12 @@ export default function CustomerOrders() {
         const fromOrders = orders.map(o => o.branch).filter(Boolean);
         setAvailableBranches(Array.from(new Set(['Sucursal Tucumán', 'Sucursal Independencia', ...fromOrders])));
     }, [orders]);
+
+    // Asigna la sucursal del usuario al form apenas el user esté disponible
+    // (el estado inicial corre antes de que AuthContext cargue al user).
+    useEffect(() => {
+        if (user?.branch) setFormData(f => ({ ...f, branch: user.branch }));
+    }, [user]);
 
     const showToast = (message, type = 'success') => {
         setToast({ show: true, message, type });
@@ -84,7 +90,8 @@ export default function CustomerOrders() {
                 employeeInChargeId: formData.employeeInChargeId ? parseInt(formData.employeeInChargeId) : null
             };
             const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/customerorders`, data);
-            setOrders([response.data, ...orders]);
+            // Fallback de branch por si el backend no lo devuelve en el echo
+            setOrders([{ ...response.data, branch: response.data?.branch || data.branch }, ...orders]);
             setIsModalOpen(false);
             setFormData({
                 customerName: '',
@@ -97,7 +104,7 @@ export default function CustomerOrders() {
                 paymentMode: 'Efectivo',
                 salesChannel: 'Tienda',
                 status: 'Pendiente',
-                branch: user?.branch || 'Sucursal Principal'
+                branch: user?.branch || ''
             });
         } catch (err) {
             showToast('Error al crear el pedido. Verifique los datos.', 'error');
@@ -501,6 +508,20 @@ export default function CustomerOrders() {
                                         <option value="WhatsApp">WhatsApp</option>
                                         <option value="Teléfono">Teléfono</option>
                                         <option value="Instagram">Instagram</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Sucursal</label>
+                                    <select
+                                        value={formData.branch}
+                                        onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                                        className="input-field"
+                                        required
+                                    >
+                                        <option value="">Seleccione sucursal</option>
+                                        {availableBranches.map((b, i) => (
+                                            <option key={i} value={b}>{b}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="form-group">

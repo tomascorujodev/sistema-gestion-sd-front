@@ -391,7 +391,7 @@ export default function CustomerOrders() {
                                         <button className="icon-btn" title="Ver detalles" onClick={() => handleViewDetails(order)}>
                                             <Eye size={16} />
                                         </button>
-                                        {order.status === 'Listo' && user?.role === 'Admin' && (
+                                        {order.status === 'Listo' && (
                                             <button
                                                 className="icon-btn"
                                                 title="Eliminar pedido"

@@ -22,7 +22,7 @@ const DIAS = [
 const vacio = {
     visible: false, paymentMethod: 'transferencia', storeDiscountPercentage: 0, storeDiscountCap: '',
     bankRefundPercentage: 0, bankRefundCap: '', interestFreeInstallments: '', daysOfWeek: 0,
-    bank: '', cardBins: '', bannerText: '',
+    bank: '', cardBins: '', bannerText: '', combinableWithCoupons: false,
 };
 
 const textoDias = (mascara) => mascara === 0 ? 'Todos los días' : DIAS.filter(d => mascara & (1 << d.bit)).map(d => d.label).join(', ');
@@ -84,6 +84,7 @@ export default function PromotionsWeb() {
             bank: conTarjeta(form.paymentMethod) ? form.bank : '',
             cardBins: conTarjeta(form.paymentMethod) ? form.cardBins : '',
             bannerText: form.bannerText,
+            combinableWithCoupons: form.combinableWithCoupons,
         };
         try {
             await axios.put(`${API}/${form.promotion.id}`, datos);
@@ -173,6 +174,10 @@ export default function PromotionsWeb() {
                     </div>
                     <div className="sb-checks">
                         <label><input type="checkbox" checked={form.visible} onChange={(e) => setForm({ ...form, visible: e.target.checked })} /> Mostrar y aplicar en la tienda</label>
+                        <label><input type="checkbox" checked={!!form.combinableWithCoupons} onChange={(e) => setForm({ ...form, combinableWithCoupons: e.target.checked })} /> Se acumula con cupones</label>
+                    </div>
+                    <small className="sb-ayuda">Si no se acumula y el cliente usa un cupón, se aplica el mayor de los dos descuentos, nunca ambos.</small>
+                    <div className="sb-checks">
                     </div>
                     <div className="sb-actions">
                         <button type="submit" className="btn btn-primary"><Save size={16} /> <span style={{ marginLeft: '0.4rem' }}>Guardar</span></button>
@@ -208,7 +213,7 @@ export default function PromotionsWeb() {
                                         <div className="sb-sub">{p.paymentMethods || '—'} · vence {new Date(p.validUntil).toLocaleDateString('es-AR')}{vencida && ' (vencida)'}</div>
                                     </td>
                                     <td>{w ? <>{nombreMedio(w.paymentMethod)}{w.bank && <div className="sb-sub">{w.bank}{w.cardBins ? ` · ${w.cardBins.split(',').length} BIN` : ''}</div>}</> : <span className="sb-falta">Sin configurar</span>}</td>
-                                    <td>{w ? <>{w.storeDiscountPercentage}% tienda{w.bankRefundPercentage > 0 && ` + ${w.bankRefundPercentage}% reintegro`}{w.interestFreeInstallments && <div className="sb-sub">{w.interestFreeInstallments} cuotas s/interés</div>}</> : '—'}</td>
+                                    <td>{w ? <>{w.storeDiscountPercentage}% tienda{w.bankRefundPercentage > 0 && ` + ${w.bankRefundPercentage}% reintegro`}{w.interestFreeInstallments && <div className="sb-sub">{w.interestFreeInstallments} cuotas s/interés</div>}<div className="sb-sub">{w.combinableWithCoupons ? 'Se acumula con cupones' : 'No se acumula con cupones'}</div></> : '—'}</td>
                                     <td>{w ? textoDias(w.daysOfWeek) : '—'}</td>
                                     <td>
                                         {w?.visible && !vencida

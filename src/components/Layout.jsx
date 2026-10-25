@@ -317,6 +317,21 @@ export default function Layout() {
                                 >
                                     Productos
                                 </Link>
+                                <Link
+                                    to="/clasificacion"
+                                    className={location.pathname === '/clasificacion' ? 'sub-nav-item active' : 'sub-nav-item'}
+                                    style={{
+                                        textDecoration: 'none',
+                                        color: location.pathname === '/clasificacion' ? 'var(--primary-color)' : '#6b7280',
+                                        fontSize: '0.875rem',
+                                        padding: '0.5rem',
+                                        borderRadius: '0.375rem',
+                                        background: location.pathname === '/clasificacion' ? '#eef2ff' : 'transparent',
+                                        display: 'block'
+                                    }}
+                                >
+                                    Clasificación
+                                </Link>
                                 {user?.role === 'Admin' && (
                                     <Link
                                         to="/design"

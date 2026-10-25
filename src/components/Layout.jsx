@@ -334,6 +334,23 @@ export default function Layout() {
                                 </Link>
                                 {user?.role === 'Admin' && (
                                     <Link
+                                        to="/sucursales-web"
+                                        className={location.pathname === '/sucursales-web' ? 'sub-nav-item active' : 'sub-nav-item'}
+                                        style={{
+                                            textDecoration: 'none',
+                                            color: location.pathname === '/sucursales-web' ? 'var(--primary-color)' : '#6b7280',
+                                            fontSize: '0.875rem',
+                                            padding: '0.5rem',
+                                            borderRadius: '0.375rem',
+                                            background: location.pathname === '/sucursales-web' ? '#eef2ff' : 'transparent',
+                                            display: 'block'
+                                        }}
+                                    >
+                                        Sucursales
+                                    </Link>
+                                )}
+                                {user?.role === 'Admin' && (
+                                    <Link
                                         to="/design"
                                         className={location.pathname === '/design' ? 'sub-nav-item active' : 'sub-nav-item'}
                                         style={{

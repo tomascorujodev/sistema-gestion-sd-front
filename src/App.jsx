@@ -25,6 +25,7 @@ import Shortages from './pages/Shortages';
 import Suppliers from './pages/Suppliers';
 import FoodExpirations from './pages/FoodExpirations';
 import ProductClassification from './pages/ProductClassification';
+import StoreBranches from './pages/StoreBranches';
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
               <Route path="/design" element={<Design />} />
               <Route path="/shipping" element={<ShippingConfig />} />
               <Route path="/branches" element={<Branches />} />
+              <Route path="/sucursales-web" element={<StoreBranches />} />
             </Route>
           </Route>
 

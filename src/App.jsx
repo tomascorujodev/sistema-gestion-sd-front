@@ -26,6 +26,7 @@ import Suppliers from './pages/Suppliers';
 import FoodExpirations from './pages/FoodExpirations';
 import ProductClassification from './pages/ProductClassification';
 import StoreBranches from './pages/StoreBranches';
+import PromotionsWeb from './pages/PromotionsWeb';
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
               <Route path="/shipping" element={<ShippingConfig />} />
               <Route path="/branches" element={<Branches />} />
               <Route path="/sucursales-web" element={<StoreBranches />} />
+              <Route path="/promociones-web" element={<PromotionsWeb />} />
             </Route>
           </Route>
 

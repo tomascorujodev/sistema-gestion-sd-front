@@ -351,6 +351,23 @@ export default function Layout() {
                                 )}
                                 {user?.role === 'Admin' && (
                                     <Link
+                                        to="/promociones-web"
+                                        className={location.pathname === '/promociones-web' ? 'sub-nav-item active' : 'sub-nav-item'}
+                                        style={{
+                                            textDecoration: 'none',
+                                            color: location.pathname === '/promociones-web' ? 'var(--primary-color)' : '#6b7280',
+                                            fontSize: '0.875rem',
+                                            padding: '0.5rem',
+                                            borderRadius: '0.375rem',
+                                            background: location.pathname === '/promociones-web' ? '#eef2ff' : 'transparent',
+                                            display: 'block'
+                                        }}
+                                    >
+                                        Promociones
+                                    </Link>
+                                )}
+                                {user?.role === 'Admin' && (
+                                    <Link
                                         to="/design"
                                         className={location.pathname === '/design' ? 'sub-nav-item active' : 'sub-nav-item'}
                                         style={{

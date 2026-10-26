@@ -37,6 +37,17 @@ Toda dependencia directa de npm tiene que estar en esta tabla con versión exact
 | @types/react | 19.2.7 | MIT | Tipos (editor) | Existente — revisar |
 | @types/react-dom | 19.2.3 | MIT | Tipos (editor) | Existente — revisar |
 
+## GitHub Actions (`.github/workflows/staging.yml`)
+
+Fijadas por SHA de commit. El workflow de Azure (`azure-static-web-apps-*.yml`) queda como estaba.
+
+| Acción / binario | Versión | SHA / verificación | Licencia | Para qué | Estado |
+|---|---|---|---|---|---|
+| actions/checkout | v7.0.1 | 3d3c42e5aac5ba805825da76410c181273ba90b1 | MIT | Clonar el repo | **Aprobada** 2026-10-26 |
+| actions/setup-node | v7.1.0 | 949feb2413d6458794dcd2491c4babbbce0c15c1 | MIT | Node 24.22.1 + caché de npm | **Aprobada** 2026-10-26 |
+| cloudflared (runner) | 2026.10.0 | sha256 `d33ff2d14475178d2012c2c56beba87389ac5ded27649519f198a7d3134a99db` | Apache-2.0 | SSH al VPS por Cloudflare Access en el deploy | **Aprobada** 2026-10-26 |
+
 ## Historial
 
 - **2026-10-25** — `npm audit fix` (sin saltos de versión mayor) + versiones exactas en `package.json`. Antes: 21 vulnerabilidades (16 altas); después: 0. Transitivas nuevas: `https-proxy-agent` 5.0.1 y `agent-base` (de axios, solo se usan en Node, no en el navegador), `@humanfs/types` (eslint) y binarios opcionales de rollup para otras plataformas (no se instalan en Windows).
+- **2026-10-26** — CI de staging: actions/checkout v7.0.1, actions/setup-node v7.1.0 (por SHA), cloudflared 2026.10.0 en el runner.

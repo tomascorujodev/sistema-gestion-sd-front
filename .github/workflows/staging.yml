@@ -1,0 +1,88 @@
+# Panel en el VPS (staging). El deploy a Azure Static Web Apps sigue en
+# azure-static-web-apps-*.yml y no se toca.
+#
+#   PR                 -> build (lint solo informa: hay errores previos)
+#   manual (dispatch)  -> build con la API de staging + deploy al VPS
+#
+# Acciones fijadas por SHA (docs/DEPENDENCIES.md).
+name: staging
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+      - run: npm audit --audit-level=high
+
+      - name: Lint (informativo)
+        run: npm run lint
+        continue-on-error: true
+
+      - run: npm run build
+
+  deploy-staging:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: staging
+    concurrency:
+      group: deploy-staging-panel
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.22.1
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      # Mismo origen para el panel y la API (Caddy rutea /api/* del PANEL_HOST).
+      # La variable de entorno pisa a .env.production.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: https://${{ vars.PANEL_HOST }}
+
+      # SSH al VPS por Cloudflare Access (service token). La clave solo puede
+      # ejecutar /opt/petshop/bin/deploy.sh (forced command).
+      - name: cloudflared 2026.10.0
+        run: |
+          curl -fsSL -o cloudflared https://github.com/cloudflare/cloudflared/releases/download/2026.10.0/cloudflared-linux-amd64
+          echo "d33ff2d14475178d2012c2c56beba87389ac5ded27649519f198a7d3134a99db  cloudflared" | sha256sum -c -
+          sudo install -m 0755 cloudflared /usr/local/bin/cloudflared
+
+      - name: Deploy
+        run: |
+          install -d -m 0700 ~/.ssh
+          printf '%s\n' "$SSH_DEPLOY_KEY" > ~/.ssh/id_ed25519 && chmod 0600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          tar -czf - -C dist . | ssh -o ProxyCommand="cloudflared access ssh --hostname %h" -o BatchMode=yes \
+            "deploy@$SSH_HOST" "panel $GITHUB_SHA"
+        env:
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          TUNNEL_SERVICE_TOKEN_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          TUNNEL_SERVICE_TOKEN_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}

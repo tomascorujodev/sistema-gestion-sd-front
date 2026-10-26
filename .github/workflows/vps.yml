@@ -1,15 +1,21 @@
-# Panel en el VPS (staging). El deploy a Azure Static Web Apps sigue en
-# azure-static-web-apps-*.yml y no se toca.
+# Panel en el VPS. El deploy a Azure Static Web Apps sigue en
+# azure-static-web-apps-*.yml y no se toca (se apaga al cortar Azure).
 #
 #   PR                 -> build (lint solo informa: hay errores previos)
-#   manual (dispatch)  -> build con la API de staging + deploy al VPS
+#   manual (dispatch)  -> build con el PANEL_HOST del entorno + deploy al VPS
 #
 # Acciones fijadas por SHA (docs/DEPENDENCIES.md).
-name: staging
+name: vps
 
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      entorno:
+        description: Entorno
+        type: choice
+        options: [production, staging]
+        default: production
 
 permissions:
   contents: read
@@ -38,13 +44,13 @@ jobs:
 
       - run: npm run build
 
-  deploy-staging:
+  deploy:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    environment: staging
+    environment: ${{ inputs.entorno }}
     concurrency:
-      group: deploy-staging-panel
+      group: deploy-panel-${{ inputs.entorno }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

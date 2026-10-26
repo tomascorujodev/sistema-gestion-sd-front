@@ -37,7 +37,7 @@ Toda dependencia directa de npm tiene que estar en esta tabla con versión exact
 | @types/react | 19.2.7 | MIT | Tipos (editor) | Existente — revisar |
 | @types/react-dom | 19.2.3 | MIT | Tipos (editor) | Existente — revisar |
 
-## GitHub Actions (`.github/workflows/staging.yml`)
+## GitHub Actions (`.github/workflows/vps.yml`)
 
 Fijadas por SHA de commit. El workflow de Azure (`azure-static-web-apps-*.yml`) queda como estaba.
 

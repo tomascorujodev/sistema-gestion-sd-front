@@ -328,8 +328,7 @@ export default function PendingInvoices({ onPayAction }) {
                             </button>
                             <button
                                 onClick={confirmDelete}
-                                className="btn"
-                                style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.375rem', fontWeight: 600, cursor: 'pointer' }}
+                                className="btn btn-danger"
                             >
                                 Eliminar
                             </button>

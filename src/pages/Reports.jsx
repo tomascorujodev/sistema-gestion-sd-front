@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FileText, Plus, Search, Filter, ChevronDown, ChevronUp, DollarSign, AlertCircle, Package, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Trash2 } from 'lucide-react';
+import { FileText, Plus, Search, Filter, ChevronDown, ChevronUp, DollarSign, AlertCircle, Package, Trash2 } from 'lucide-react';
 import '../Products.css';
 import ShiftReportModal from '../components/ShiftReportModal';
 import { useAuth } from '../context/AuthContext';
+import Pagination from '../components/Pagination';
 
 export default function Reports() {
     const { user, employee } = useAuth();
@@ -71,8 +72,8 @@ export default function Reports() {
         }
     };
 
-    const handlePageSizeChange = (e) => {
-        setPageSize(Number(e.target.value));
+    const handlePageSizeChange = (size) => {
+        setPageSize(size);
         setCurrentPage(1); // Reset to first page when changing page size
         setExpandedReportId(null);
     };
@@ -243,109 +244,16 @@ export default function Reports() {
                 )}
             </div>
 
-            {/* Pagination Controls */}
-            {totalRecords > 0 && (
-                <div className="pagination-controls">
-                    {/* Page Size Selector */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <label style={{ fontSize: '0.9rem', color: '#64748b' }}>Mostrar:</label>
-                        <select
-                            value={pageSize}
-                            onChange={handlePageSizeChange}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                fontSize: '0.9rem',
-                                cursor: 'pointer',
-                                background: 'white'
-                            }}
-                        >
-                            <option value={7}>7</option>
-                            <option value={14}>14</option>
-                            <option value={28}>28</option>
-                        </select>
-                        <span style={{ fontSize: '0.9rem', color: '#64748b' }}>por página</span>
-                    </div>
-
-                    {/* Page Info */}
-                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                        Página {currentPage} de {totalPages}
-                    </div>
-
-                    {/* Navigation Buttons */}
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                            onClick={() => handlePageChange(1)}
-                            disabled={currentPage === 1}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                background: currentPage === 1 ? '#f1f5f9' : 'white',
-                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: currentPage === 1 ? 0.5 : 1
-                            }}
-                            title="Primera página"
-                        >
-                            <ChevronsLeft size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                background: currentPage === 1 ? '#f1f5f9' : 'white',
-                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: currentPage === 1 ? 0.5 : 1
-                            }}
-                            title="Página anterior"
-                        >
-                            <ChevronLeft size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                background: currentPage === totalPages ? '#f1f5f9' : 'white',
-                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: currentPage === totalPages ? 0.5 : 1
-                            }}
-                            title="Página siguiente"
-                        >
-                            <ChevronRight size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(totalPages)}
-                            disabled={currentPage === totalPages}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                background: currentPage === totalPages ? '#f1f5f9' : 'white',
-                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: currentPage === totalPages ? 0.5 : 1
-                            }}
-                            title="Última página"
-                        >
-                            <ChevronsRight size={18} />
-                        </button>
-                    </div>
-                </div>
-            )}
+            <Pagination
+                page={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalRecords}
+                pageSize={pageSize}
+                pageSizeOptions={[7, 14, 28]}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                standalone
+            />
         </div>
     );
 }

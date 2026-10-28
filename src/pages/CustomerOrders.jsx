@@ -434,8 +434,7 @@ export default function CustomerOrders() {
                                 </button>
                                 <button
                                     onClick={confirmDelete}
-                                    className="btn"
-                                    style={{ width: '100%', backgroundColor: '#dc2626', color: 'white' }}
+                                    className="btn btn-danger btn-block"
                                 >
                                     Eliminar
                                 </button>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { DollarSign, Trash2, Edit, AlertCircle, Save, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CheckCircle, AlertTriangle } from 'lucide-react';
+import { DollarSign, Trash2, Edit, AlertCircle, Save, X, CheckCircle, AlertTriangle } from 'lucide-react';
 import '../Products.css';
+import Pagination from '../components/Pagination';
 
 export default function AdminDashboard() {
     const [cashRegisters, setCashRegisters] = useState([]);
@@ -162,8 +163,8 @@ export default function AdminDashboard() {
         }
     };
 
-    const handlePageSizeChange = (e) => {
-        setPageSize(Number(e.target.value));
+    const handlePageSizeChange = (size) => {
+        setPageSize(size);
         setPage(1);
     };
 
@@ -455,67 +456,16 @@ export default function AdminDashboard() {
                 </table>
             </div>
 
-            {/* Pagination Controls */}
-            {totalRecords > 0 && (
-                <div className="pagination-controls">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <label style={{ fontSize: '0.9rem', color: '#64748b' }}>Mostrar:</label>
-                        <select
-                            value={pageSize}
-                            onChange={handlePageSizeChange}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                fontSize: '0.9rem',
-                                cursor: 'pointer',
-                                background: 'white'
-                            }}
-                        >
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
-                        <span style={{ fontSize: '0.9rem', color: '#64748b' }}>por página</span>
-                    </div>
-
-                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                        Página {page} de {totalPages}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                            onClick={() => handlePageChange(1)}
-                            disabled={page === 1}
-                            style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #e2e8f0', background: page === 1 ? '#f1f5f9' : 'white', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}
-                        >
-                            <ChevronsLeft size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(page - 1)}
-                            disabled={page === 1}
-                            style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #e2e8f0', background: page === 1 ? '#f1f5f9' : 'white', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}
-                        >
-                            <ChevronLeft size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(page + 1)}
-                            disabled={page === totalPages}
-                            style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #e2e8f0', background: page === totalPages ? '#f1f5f9' : 'white', cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}
-                        >
-                            <ChevronRight size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(totalPages)}
-                            disabled={page === totalPages}
-                            style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #e2e8f0', background: page === totalPages ? '#f1f5f9' : 'white', cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}
-                        >
-                            <ChevronsRight size={18} />
-                        </button>
-                    </div>
-                </div>
-            )}
+            <Pagination
+                page={page}
+                totalPages={totalPages}
+                totalRecords={totalRecords}
+                pageSize={pageSize}
+                pageSizeOptions={[10, 20, 50, 100]}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                standalone
+            />
 
             {successModal.show && (
                 <div className="modal-overlay" style={{ zIndex: 3000 }}>
@@ -524,7 +474,7 @@ export default function AdminDashboard() {
                             <div style={{
                                 width: '64px',
                                 height: '64px',
-                                backgroundColor: successModal.type === 'success' ? '#dcfce7' : '#fee2e2',
+                                backgroundColor: successModal.type === 'success' ? 'var(--color-bg-success-subtle)' : 'var(--color-bg-danger-subtle)',
                                 borderRadius: '50%',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -548,13 +498,7 @@ export default function AdminDashboard() {
                             </p>
                             <button
                                 onClick={() => setSuccessModal({ ...successModal, show: false })}
-                                className="btn btn-primary"
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    backgroundColor: successModal.type === 'success' ? 'var(--primary-color)' : '#dc2626',
-                                    border: 'none'
-                                }}
+                                className={`btn btn-block ${successModal.type === 'success' ? 'btn-primary' : 'btn-danger'}`}
                             >
                                 Aceptar
                             </button>

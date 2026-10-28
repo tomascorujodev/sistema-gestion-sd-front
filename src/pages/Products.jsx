@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit, Trash2, Upload, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ImageOff, Loader, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, ImageOff, Loader, Search, Settings2, X } from 'lucide-react';
 import ProductForm from '../components/ProductForm';
 import ConfirmationModal from '../components/ConfirmationModal';
+import PageHeader from '../components/PageHeader';
+import Pagination from '../components/Pagination';
 import '../Products.css';
 
 export default function Products() {
@@ -199,10 +201,15 @@ export default function Products() {
         }
     };
 
-    const handlePageSizeChange = (e) => {
-        setPageSize(Number(e.target.value));
+    const handlePageSizeChange = (size) => {
+        setPageSize(size);
         setPage(1); // Reset to first page when changing page size
     };
+
+    const filteredCategories = categories.filter(c => {
+        const name = typeof c === 'object' ? c.name : c;
+        return name.toLowerCase().includes(categorySearchQuery.toLowerCase());
+    });
 
     // Only show full-screen loader on initial empty load, so we don't unmount the search input while typing.
     if (loading && products.length === 0 && !searchQuery && !categoryFilter) return <div className="loading-container">Cargando productos...</div>;
@@ -226,8 +233,8 @@ export default function Products() {
                 title={infoModal.title}
                 message={infoModal.message}
                 confirmText="Aceptar"
-                isDestructive={false}
-                showCancel={false}
+                isDestructive={infoModal.isError}
+                hideCancel={true}
             />
             {/* Modal de confirmación de limpieza */}
             <ConfirmationModal
@@ -252,57 +259,42 @@ export default function Products() {
 
             {/* Modal de resultado de limpieza */}
             {cleanupResult && (
-                <div style={{
-                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999
-                }}>
-                    <div style={{
-                        background: 'white', borderRadius: '0.75rem', padding: '2rem',
-                        maxWidth: '520px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-                    }}>
-                        <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', color: '#1e293b' }}>
-                            Limpieza completada
-                        </h2>
-                        <p style={{ color: '#64748b', margin: '0 0 1.25rem', fontSize: '0.9rem' }}>
-                            Se revisaron <strong>{cleanupResult.checkedCount}</strong> productos con imagen.
-                        </p>
-                        {cleanupResult.cleanedCount === 0 ? (
-                            <div style={{
-                                background: '#f0fdf4', border: '1px solid #bbf7d0',
-                                borderRadius: '0.5rem', padding: '1rem', color: '#166534', fontSize: '0.9rem'
-                            }}>
-                                ✅ ¡Todo en orden! No se encontraron imágenes rotas.
+                <div className="modal-overlay">
+                    <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="cleanup-title">
+                        <div className="modal-header">
+                            <div>
+                                <h2 id="cleanup-title">Limpieza completada</h2>
+                                <p className="modal-subtitle">
+                                    Se revisaron <strong>{cleanupResult.checkedCount}</strong> productos con imagen.
+                                </p>
                             </div>
-                        ) : (
-                            <>
-                                <div style={{
-                                    background: '#fefce8', border: '1px solid #fde68a',
-                                    borderRadius: '0.5rem', padding: '0.75rem 1rem',
-                                    color: '#92400e', fontSize: '0.9rem', marginBottom: '1rem'
-                                }}>
-                                    ⚠️ Se limpiaron <strong>{cleanupResult.cleanedCount}</strong> imágenes rotas.
+                            <button type="button" className="close-btn" onClick={() => setCleanupResult(null)} aria-label="Cerrar">
+                                <X />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            {cleanupResult.cleanedCount === 0 ? (
+                                <div className="notice notice--success">
+                                    ¡Todo en orden! No se encontraron imágenes rotas.
                                 </div>
-                                <div style={{ maxHeight: '200px', overflowY: 'auto', fontSize: '0.85rem' }}>
-                                    {cleanupResult.cleanedProducts.map((p, i) => (
-                                        <div key={i} style={{
-                                            padding: '0.4rem 0',
-                                            borderBottom: '1px solid #f1f5f9',
-                                            color: '#475569'
-                                        }}>
-                                            <strong>{p.name}</strong>
-                                            <span style={{ color: '#94a3b8', marginLeft: '0.5rem', fontSize: '0.75rem' }}>
-                                                ID #{p.id}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-                        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => setCleanupResult(null)}
-                            >
+                            ) : (
+                                <>
+                                    <div className="notice notice--warning">
+                                        Se limpiaron <strong>{cleanupResult.cleanedCount}</strong> imágenes rotas.
+                                    </div>
+                                    <ul className="simple-list">
+                                        {cleanupResult.cleanedProducts.map((p, i) => (
+                                            <li key={i}>
+                                                <strong>{p.name}</strong>
+                                                <span className="simple-list__meta">ID #{p.id}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-primary" onClick={() => setCleanupResult(null)}>
                                 Aceptar
                             </button>
                         </div>
@@ -310,91 +302,88 @@ export default function Products() {
                 </div>
             )}
 
-            <div className="page-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                    <h1>Productos</h1>
-                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                        {totalRecords} {totalRecords === 1 ? 'producto' : 'productos'} en total
-                    </div>
-                </div>
-                <div className="header-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
-                    <div style={{ position: 'relative' }}>
+            <PageHeader
+                breadcrumb={[{ label: 'Página Web' }, { label: 'Productos' }]}
+                title="Productos"
+                subtitle={`${totalRecords} ${totalRecords === 1 ? 'producto' : 'productos'} en total`}
+                actions={
+                    <>
                         <input
-                            type="text"
-                            placeholder="Buscar producto..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setPage(1);
-                            }}
-                            style={{
-                                padding: '0.5rem 0.5rem 0.5rem 2rem',
-                                borderRadius: '0.25rem',
-                                border: '1px solid #d1d5db',
-                                width: '200px'
-                            }}
+                            type="file"
+                            id="fileInput"
+                            style={{ display: 'none' }}
+                            accept=".xlsx, .xls"
+                            onChange={handleFileChange}
                         />
-                        <div style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
-                            <Search size={16} />
-                        </div>
-                    </div>
-                    <select
-                        className="form-select"
-                        value={categoryFilter}
-                        onChange={(e) => {
-                            setCategoryFilter(e.target.value);
-                            setPage(1);
-                        }}
-                        style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #d1d5db' }}
-                    >
-                        <option value="">Todas las Categorías</option>
-                        {categories.map(cat => {
-                            const catName = typeof cat === 'object' ? (cat.name || cat.Name || '') : cat;
-                            return <option key={catName} value={catName}>{catName}</option>;
-                        })}
-                    </select>
-
-                    <button
-                        className="btn btn-secondary"
-                        onClick={() => setIsCategoryModalOpen(true)}
-                        style={{ backgroundColor: '#64748b', color: 'white', display: 'flex', alignItems: 'center' }}
-                    >
-                        Gestionar Categorías
-                    </button>
-
-                    <input
-                        type="file"
-                        id="fileInput"
-                        style={{ display: 'none' }}
-                        accept=".xlsx, .xls"
-                        onChange={handleFileChange}
-                    />
-                    <button
-                        className="btn btn-secondary"
-                        onClick={() => setCleanupModal({ show: true })}
-                        disabled={cleanupLoading}
-                        title="Detectar y limpiar imágenes que ya no existen en Cloudinary"
-                        style={{ backgroundColor: '#f59e0b', color: 'white', display: 'flex', alignItems: 'center' }}
-                    >
-                        {cleanupLoading
-                            ? <Loader size={16} style={{ marginRight: '0.5rem', animation: 'spin 1s linear infinite' }} />
-                            : <ImageOff size={16} style={{ marginRight: '0.5rem' }} />
-                        }
-                        {cleanupLoading ? 'Verificando...' : 'Limpiar rotas'}
-                    </button>
-                    <button className="btn btn-secondary" onClick={handleImportClick} style={{ backgroundColor: '#28a745', color: 'white' }}>
-                        <Upload size={16} style={{ marginRight: '0.5rem' }} />
-                        Importar Excel
-                    </button>
-                    <button className="btn btn-primary" onClick={handleAdd}>
-                        <Plus size={16} style={{ marginRight: '0.5rem' }} />
-                        Agregar Producto
-                    </button>
-                </div>
-            </div>
+                        <button className="btn btn-success" onClick={handleImportClick}>
+                            <Upload />
+                            Importar Excel
+                        </button>
+                        <button className="btn btn-primary" onClick={handleAdd}>
+                            <Plus />
+                            Agregar Producto
+                        </button>
+                    </>
+                }
+            />
 
             <div className="table-container">
-                <table className="data-table">
+                <div className="table-toolbar">
+                    <div className="table-toolbar__group products-filters">
+                        <div className="search-field">
+                            <Search />
+                            <input
+                                type="text"
+                                className="input-field"
+                                placeholder="Buscar producto..."
+                                aria-label="Buscar producto"
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
+                        <select
+                            className="form-select"
+                            value={categoryFilter}
+                            aria-label="Filtrar por categoría"
+                            onChange={(e) => {
+                                setCategoryFilter(e.target.value);
+                                setPage(1);
+                            }}
+                        >
+                            <option value="">Todas las Categorías</option>
+                            {categories.map(cat => {
+                                const catName = typeof cat === 'object' ? (cat.name || cat.Name || '') : cat;
+                                return <option key={catName} value={catName}>{catName}</option>;
+                            })}
+                        </select>
+                    </div>
+                    <div className="table-toolbar__group products-utilities">
+                        <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => setIsCategoryModalOpen(true)}
+                            title="Gestionar Categorías"
+                        >
+                            <Settings2 />
+                            <span className="btn-label">Gestionar Categorías</span>
+                        </button>
+                        <button
+                            className="btn btn-warning btn-sm"
+                            onClick={() => setCleanupModal({ show: true })}
+                            disabled={cleanupLoading}
+                            title="Detectar y limpiar imágenes que ya no existen en Cloudinary"
+                        >
+                            {cleanupLoading
+                                ? <Loader style={{ animation: 'spin 1s linear infinite' }} />
+                                : <ImageOff />
+                            }
+                            <span className="btn-label">{cleanupLoading ? 'Verificando...' : 'Limpiar imágenes rotas'}</span>
+                        </button>
+                    </div>
+                </div>
+                <table className="data-table data-table--cards products-table">
                     <thead>
                         <tr>
                             <th>Imagen</th>
@@ -404,69 +393,53 @@ export default function Products() {
                             <th>Precio</th>
                             <th>Stock</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th aria-label="Acciones"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {products.map((product) => (
                             <tr key={product.id}>
-                                <td>
+                                <td className="cell-media">
                                     {product.imageUrl ? (
-                                        <img
-                                            src={product.imageUrl}
-                                            alt={product.name}
-                                            style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
-                                        />
+                                        <img src={product.imageUrl} alt={product.name} className="product-thumb" />
                                     ) : (
-                                        <div style={{ width: '50px', height: '50px', background: '#e2e8f0', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '12px' }}>Sin imagen</div>
+                                        <div className="product-thumb product-thumb--empty" title="Sin imagen">
+                                            <ImageOff size={18} />
+                                        </div>
                                     )}
                                 </td>
-                                <td>{product.name}</td>
-                                <td>{product.sku}</td>
-                                <td>{product.category}</td>
-                                <td>${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                <td>{product.stock}</td>
-                                <td>
-                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        <span style={{
-                                            padding: '0.25rem 0.5rem',
-                                            borderRadius: '9999px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: '600',
-                                            background: product.isActive ? '#dcfce7' : '#fee2e2',
-                                            color: product.isActive ? '#166534' : '#991b1b'
-                                        }}>
+                                <td className="cell-main">{product.name}</td>
+                                <td data-label="SKU" className="cell-meta" style={{ color: 'var(--color-text-tertiary)' }}>{product.sku}</td>
+                                <td data-label="Categoría" className="cell-meta">{product.category}</td>
+                                <td data-label="Precio" className="price-cell cell-price">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                <td data-label="Stock" className="cell-stock" style={product.stock === 0 ? { color: 'var(--color-text-danger)', fontWeight: 600 } : undefined}>{product.stock}</td>
+                                <td data-label="Estado" className="cell-status">
+                                    <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                                        <span className={`badge ${product.isActive ? 'badge--success' : 'badge--danger'}`}>
                                             {product.isActive ? 'Activo' : 'Inactivo'}
                                         </span>
                                         {product.isOnOffer && (
-                                            <span style={{
-                                                padding: '0.25rem 0.5rem',
-                                                borderRadius: '9999px',
-                                                fontSize: '0.75rem',
-                                                fontWeight: '600',
-                                                background: '#fef3c7',
-                                                color: '#92400e'
-                                            }}>
-                                                OFERTA
-                                            </span>
+                                            <span className="badge badge--warning">Oferta</span>
                                         )}
                                     </div>
                                 </td>
-                                <td>
+                                <td className="cell-actions">
                                     <div className="action-buttons">
                                         <button
                                             className="icon-btn edit-btn"
                                             title="Editar"
+                                            aria-label={`Editar ${product.name}`}
                                             onClick={() => handleEdit(product)}
                                         >
-                                            <Edit size={16} />
+                                            <Edit />
                                         </button>
                                         <button
                                             className="icon-btn delete-btn"
                                             title="Eliminar"
+                                            aria-label={`Eliminar ${product.name}`}
                                             onClick={() => handleDeleteClick(product.id)}
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 />
                                         </button>
                                     </div>
                                 </td>
@@ -474,118 +447,21 @@ export default function Products() {
                         ))}
                         {products.length === 0 && (
                             <tr>
-                                <td colSpan="8" className="text-center">No se encontraron productos.</td>
+                                <td colSpan="8" className="empty-state cell-empty">No se encontraron productos.</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
+                <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    totalRecords={totalRecords}
+                    pageSize={pageSize}
+                    pageSizeOptions={[5, 10, 20, 50, 100]}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                />
             </div>
-
-            {/* Pagination Controls - Consistent with Reports */}
-            {totalRecords > 0 && (
-                <div className="pagination-controls">
-                    {/* Page Size Selector */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <label style={{ fontSize: '0.9rem', color: '#64748b' }}>Mostrar:</label>
-                        <select
-                            value={pageSize}
-                            onChange={handlePageSizeChange}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                fontSize: '0.9rem',
-                                cursor: 'pointer',
-                                background: 'white'
-                            }}
-                        >
-                            <option value={5}>5</option>
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
-                        <span style={{ fontSize: '0.9rem', color: '#64748b' }}>por página</span>
-                    </div>
-
-                    {/* Page Info */}
-                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                        Página {page} de {totalPages}
-                    </div>
-
-                    {/* Navigation Buttons */}
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                            onClick={() => handlePageChange(1)}
-                            disabled={page === 1}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                background: page === 1 ? '#f1f5f9' : 'white',
-                                cursor: page === 1 ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: page === 1 ? 0.5 : 1
-                            }}
-                            title="Primera página"
-                        >
-                            <ChevronsLeft size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(page - 1)}
-                            disabled={page === 1}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                background: page === 1 ? '#f1f5f9' : 'white',
-                                cursor: page === 1 ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: page === 1 ? 0.5 : 1
-                            }}
-                            title="Página anterior"
-                        >
-                            <ChevronLeft size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(page + 1)}
-                            disabled={page === totalPages}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                background: page === totalPages ? '#f1f5f9' : 'white',
-                                cursor: page === totalPages ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: page === totalPages ? 0.5 : 1
-                            }}
-                            title="Página siguiente"
-                        >
-                            <ChevronRight size={18} />
-                        </button>
-                        <button
-                            onClick={() => handlePageChange(totalPages)}
-                            disabled={page === totalPages}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                border: '1px solid #e2e8f0',
-                                background: page === totalPages ? '#f1f5f9' : 'white',
-                                cursor: page === totalPages ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: page === totalPages ? 0.5 : 1
-                            }}
-                            title="Última página"
-                        >
-                            <ChevronsRight size={18} />
-                        </button>
-                    </div>
-                </div>
-            )}
 
             {isModalOpen && (
                 <ProductForm
@@ -596,69 +472,42 @@ export default function Products() {
             )}
 
             {isCategoryModalOpen && (
-                <div style={{
-                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999
-                }}>
-                    <div style={{
-                        background: 'white', borderRadius: '0.75rem', padding: '2rem',
-                        maxWidth: '500px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-                        maxHeight: '80vh', display: 'flex', flexDirection: 'column'
-                    }}>
-                        <h2 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: '#1e293b' }}>
-                            Gestionar Categorías
-                        </h2>
-                        <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                            Activa o desactiva las categorías. Las categorías inactivas y sus productos no se mostrarán en la tienda web pública.
-                        </p>
-                        
-                        <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
-                            <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                <div className="modal-overlay">
+                    <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="categories-title">
+                        <div className="modal-header">
+                            <div>
+                                <h2 id="categories-title">Gestionar Categorías</h2>
+                                <p className="modal-subtitle">
+                                    Activa o desactiva las categorías. Las categorías inactivas y sus productos no se mostrarán en la tienda web pública.
+                                </p>
+                            </div>
+                            <button type="button" className="close-btn" onClick={() => setIsCategoryModalOpen(false)} aria-label="Cerrar">
+                                <X />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="search-field" style={{ marginBottom: 'var(--space-3)' }}>
+                                <Search />
                                 <input
                                     type="text"
+                                    className="input-field"
                                     placeholder="Buscar categoría..."
                                     value={categorySearchQuery}
                                     onChange={(e) => setCategorySearchQuery(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem 0.5rem 0.5rem 2rem',
-                                        borderRadius: '0.25rem',
-                                        border: '1px solid #d1d5db',
-                                    }}
                                 />
-                                <div style={{ position: 'absolute', left: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
-                                    <Search size={16} />
-                                </div>
                             </div>
-                            {categories.filter(c => {
-                                const q = categorySearchQuery.toLowerCase();
-                                const name = typeof c === 'object' ? c.name : c;
-                                return name.toLowerCase().includes(q);
-                            }).map((cat, i) => {
+                            {filteredCategories.map((cat, i) => {
                                 const name = typeof cat === 'object' ? cat.name : cat;
                                 const isActive = typeof cat === 'object' ? cat.isActive : true;
-                                
+
                                 return (
-                                    <div key={i} style={{
-                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                        padding: '0.75rem', borderBottom: '1px solid #f1f5f9'
-                                    }}>
-                                        <span style={{ fontWeight: '500', color: isActive ? '#0f172a' : '#94a3b8' }}>
-                                            {name}
-                                        </span>
+                                    <div key={i} className="toggle-row">
+                                        <span className={isActive ? undefined : 'toggle-row__muted'}>{name}</span>
                                         <button
+                                            type="button"
                                             onClick={() => handleToggleClick(name, isActive)}
-                                            style={{
-                                                padding: '0.25rem 0.75rem',
-                                                borderRadius: '9999px',
-                                                fontSize: '0.75rem',
-                                                fontWeight: '600',
-                                                background: isActive ? '#dcfce7' : '#fee2e2',
-                                                color: isActive ? '#166534' : '#991b1b',
-                                                border: 'none',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s'
-                                            }}
+                                            className={`badge badge-button ${isActive ? 'badge--success' : 'badge--danger'}`}
+                                            title={isActive ? 'Desactivar' : 'Activar'}
                                         >
                                             {isActive ? 'Activa' : 'Inactiva'}
                                         </button>
@@ -666,26 +515,14 @@ export default function Products() {
                                 );
                             })}
                             {categories.length === 0 && (
-                                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
-                                    No hay categorías disponibles
-                                </div>
+                                <div className="empty-state">No hay categorías disponibles</div>
                             )}
-                            {categories.length > 0 && categories.filter(c => {
-                                const q = categorySearchQuery.toLowerCase();
-                                const name = typeof c === 'object' ? c.name : c;
-                                return name.toLowerCase().includes(q);
-                            }).length === 0 && (
-                                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
-                                    No hay resultados para tu búsqueda
-                                </div>
+                            {categories.length > 0 && filteredCategories.length === 0 && (
+                                <div className="empty-state">No hay resultados para tu búsqueda</div>
                             )}
                         </div>
-
-                        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => setIsCategoryModalOpen(false)}
-                            >
+                        <div className="modal-footer">
+                            <button className="btn btn-primary" onClick={() => setIsCategoryModalOpen(false)}>
                                 Cerrar
                             </button>
                         </div>

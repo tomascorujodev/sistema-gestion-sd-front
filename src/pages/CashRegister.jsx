@@ -287,7 +287,7 @@ export default function CashRegister() {
                             <div style={{
                                 width: '64px',
                                 height: '64px',
-                                backgroundColor: successModal.type === 'success' ? '#dcfce7' : '#fee2e2',
+                                backgroundColor: successModal.type === 'success' ? 'var(--color-bg-success-subtle)' : 'var(--color-bg-danger-subtle)',
                                 borderRadius: '50%',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -311,13 +311,7 @@ export default function CashRegister() {
                             </p>
                             <button
                                 onClick={() => setSuccessModal({ ...successModal, show: false })}
-                                className="btn btn-primary"
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    backgroundColor: successModal.type === 'success' ? 'var(--primary-color)' : '#dc2626',
-                                    border: 'none'
-                                }}
+                                className={`btn btn-block ${successModal.type === 'success' ? 'btn-primary' : 'btn-danger'}`}
                             >
                                 Aceptar
                             </button>

@@ -1,23 +1,97 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, CheckSquare, Tag, Clock, DollarSign, ChevronDown, ChevronRight, ChevronLeft, AlertOctagon, Menu, CalendarClock } from 'lucide-react';
+import {
+    LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, Tag, DollarSign,
+    ChevronDown, Menu, X, CalendarClock, Building2, Globe, Wrench, Store,
+    PanelLeftClose, PanelLeftOpen, TimerOff, Play
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import '../Layout.css';
 
-import logo from '../assets/logo.png';
+import logo from '../assets/marca/logotipo.svg';
+import isologo from '../assets/marca/isologotipo.svg';
 
 import ShiftReportModal from './ShiftReportModal';
 import EmployeeSelector from './EmployeeSelector';
 import ShiftAutoCloseNotification from './ShiftAutoCloseNotification';
 
+const COLLAPSED_KEY = 'sd.sidebarCollapsed';
+
+function readCollapsed() {
+    try {
+        return localStorage.getItem(COLLAPSED_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+
+function initials(name = '') {
+    return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+// Los textos siempre se renderizan; el CSS los oculta en modo colapsado
+// para que el ancho anime sin saltos.
+function NavItem({ to, icon, label, active, collapsed }) {
+    const Icon = icon;
+    return (
+        <Link
+            to={to}
+            className={`nav-item${active ? ' active' : ''}`}
+            title={collapsed ? label : undefined}
+            aria-current={active ? 'page' : undefined}
+        >
+            <Icon />
+            <span className="nav-item__label">{label}</span>
+        </Link>
+    );
+}
+
+function NavGroup({ icon, label, items, pathname, collapsed, open, onToggle, onCollapsedClick }) {
+    const Icon = icon;
+    const childActive = items.some(item => item.to === pathname);
+    const showItems = open && !collapsed;
+    return (
+        <div className="nav-group">
+            <button
+                type="button"
+                className={`nav-item${childActive && !showItems ? ' active' : ''}${childActive ? ' nav-item--parent-active' : ''}`}
+                onClick={collapsed ? onCollapsedClick : onToggle}
+                aria-expanded={collapsed ? undefined : open}
+                title={collapsed ? label : undefined}
+            >
+                <Icon />
+                <span className="nav-item__label">{label}</span>
+                <ChevronDown className={`nav-item__chevron${open ? '' : ' nav-item__chevron--closed'}`} />
+            </button>
+            {showItems && (
+                <div className="nav-group__items">
+                    {items.map(item => (
+                        <Link
+                            key={item.to}
+                            to={item.to}
+                            className={`sub-nav-item${item.to === pathname ? ' active' : ''}`}
+                            aria-current={item.to === pathname ? 'page' : undefined}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function Layout() {
     const { logout, user, employee, activeShift, endShift, selectEmployee, checkingShift, isShiftsEnabled } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
+    const pathname = location.pathname;
+    const isAdmin = user?.role === 'Admin';
     const [shiftDuration, setShiftDuration] = useState('');
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Default collapsed on mobile
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(readCollapsed);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -25,11 +99,23 @@ export default function Layout() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const isExpanded = isMobile ? isMobileMenuOpen : true;
+    // En mobile el sidebar es un drawer y siempre se muestra expandido
+    const collapsed = !isMobile && isCollapsed;
 
-    // Close sidebar (collapse) when location changes (mobile)
+    const toggleCollapsed = () => {
+        setIsCollapsed(prev => {
+            try {
+                localStorage.setItem(COLLAPSED_KEY, prev ? '0' : '1');
+            } catch {
+                // Sin storage: el estado vale solo para esta sesión
+            }
+            return !prev;
+        });
+    };
+
+    // Cerrar el drawer al navegar
     useEffect(() => {
-        setIsMobileMenuOpen(false);
+        setIsDrawerOpen(false);
     }, [location]);
 
     useEffect(() => {
@@ -61,8 +147,6 @@ export default function Layout() {
         }
     }, [user]);
 
-    const isActive = (path) => location.pathname === path ? 'nav-item active' : 'nav-item';
-
     const [showEndShiftModal, setShowEndShiftModal] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
@@ -70,12 +154,26 @@ export default function Layout() {
     const [lastClosedShift, setLastClosedShift] = useState(null);
     const [lastEmployee, setLastEmployee] = useState(null);
     const [errorModal, setErrorModal] = useState({ show: false, message: '' });
-    const [isCajaDropdownOpen, setIsCajaDropdownOpen] = useState(false);
-    const [isWebDropdownOpen, setIsWebDropdownOpen] = useState(false);
 
-    const handleEndShiftClick = () => {
-        setShowEndShiftModal(true);
-    };
+    const webItems = [
+        { to: '/products', label: 'Productos' },
+        { to: '/clasificacion', label: 'Clasificación' },
+        ...(isAdmin ? [
+            { to: '/sucursales-web', label: 'Sucursales' },
+            { to: '/promociones-web', label: 'Promociones' },
+            { to: '/design', label: 'Diseño' }
+        ] : []),
+        { to: '/coupons', label: 'Cupones' },
+        ...(isAdmin ? [{ to: '/shipping', label: 'Envíos' }] : [])
+    ];
+    const cajaItems = [
+        { to: '/admin', label: 'Historial de Caja' },
+        { to: '/cash-register-log', label: 'Registro de Caja' }
+    ];
+
+    // Los grupos arrancan abiertos si la ruta actual está dentro de ellos
+    const [isWebOpen, setIsWebOpen] = useState(() => webItems.some(i => i.to === pathname));
+    const [isCajaOpen, setIsCajaOpen] = useState(() => cajaItems.some(i => i.to === pathname));
 
     const handleConfirmEndShift = async () => {
         setLastEmployee(employee);
@@ -91,17 +189,9 @@ export default function Layout() {
         }
     };
 
-    const handleLogoutClick = () => {
-        setShowLogoutModal(true);
-    };
-
     const handleConfirmLogout = () => {
         logout();
         setShowLogoutModal(false);
-    };
-
-    const handleStartShiftClick = () => {
-        setShowEmployeeSelector(true);
     };
 
     const handleEmployeeSelect = async (id, name) => {
@@ -113,8 +203,12 @@ export default function Layout() {
         }
     };
 
+    const branchName = user?.branch || user?.username || user?.role;
+    const showShiftCard = employee && isShiftsEnabled;
+    const showStartShift = !employee && user?.role === 'Operator' && !checkingShift && isShiftsEnabled;
+
     return (
-        <div className="layout-container">
+        <div className={`layout-container${collapsed ? ' layout-container--collapsed' : ''}`}>
             <ConfirmationModal
                 isOpen={showEndShiftModal}
                 onClose={() => setShowEndShiftModal(false)}
@@ -129,7 +223,7 @@ export default function Layout() {
                 onClose={() => setShowLogoutModal(false)}
                 onConfirm={handleConfirmLogout}
                 title="Cerrar Sesión"
-                message={user?.role === 'Admin'
+                message={isAdmin
                     ? "¿Estás seguro de que quieres cerrar sesión?"
                     : "¿Estás seguro de que quieres cerrar sesión? Si tienes un turno activo, este continuará contando."}
                 confirmText="Cerrar Sesión"
@@ -159,346 +253,164 @@ export default function Layout() {
             )}
             <ShiftAutoCloseNotification />
 
-            {/* Mobile Sidebar Overlay - Only when expanded */}
-            {isMobileMenuOpen && isMobile && (
-                <div
-                    className="sidebar-overlay"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
+            {/* Barra superior (solo mobile) */}
+            <header className="mobile-topbar">
+                <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => setIsDrawerOpen(true)}
+                    aria-label="Abrir menú"
+                >
+                    <Menu />
+                </button>
+                <Link to="/" className="mobile-topbar__brand">
+                    <img src={logo} alt="Street Dog" />
+                </Link>
+                {showShiftCard && (
+                    <span className="shift-chip" title={`Turno de ${employee.name}`}>
+                        <span className="avatar avatar--sm">{initials(employee.name)}</span>
+                        <span className="status-dot" />
+                        {shiftDuration}
+                    </span>
+                )}
+            </header>
+
+            {isMobile && isDrawerOpen && (
+                <div className="sidebar-overlay" onClick={() => setIsDrawerOpen(false)} />
             )}
 
-            <aside className={`sidebar ${isExpanded ? 'expanded' : 'collapsed'}`}>
-                <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isExpanded ? '1.5rem' : '1rem 0.5rem', minHeight: '80px' }}>
-                    {isExpanded && (
-                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                            <img src={logo} alt="Street Dog" style={{ maxWidth: '100%', height: 'auto', marginBottom: '0.5rem' }} />
-                            <p className="user-role" style={{ textTransform: 'capitalize' }}>
-                                {user?.branch || user?.username || user?.role}
-                            </p>
-                        </div>
-                    )}
+            <aside className={`sidebar${collapsed ? ' collapsed' : ''}${isDrawerOpen ? ' open' : ''}`}>
+                <div className="sidebar-header">
+                    <Link to="/" className="sidebar-brand" title="Street Dog">
+                        <img src={isologo} alt="" className="sidebar-brand__isologo" aria-hidden="true" />
+                        <span className="sidebar-brand__text">
+                            <img src={logo} alt="Street Dog" className="sidebar-brand__logo" />
+                            <span className="user-role">{branchName}</span>
+                        </span>
+                    </Link>
                     <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="sidebar-toggle-btn"
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: 'var(--text-color, #374151)', // Ensure visibility against white background
-                            margin: isExpanded ? '0 0 0 1rem' : '0 auto',
-                            padding: '0.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                        }}
+                        type="button"
+                        className="icon-btn sidebar-close"
+                        onClick={() => setIsDrawerOpen(false)}
+                        aria-label="Cerrar menú"
                     >
-                        {isExpanded ? <ChevronLeft size={28} /> : <Menu size={28} />}
+                        <X />
                     </button>
                 </div>
 
-                {isExpanded && employee && isShiftsEnabled && (
-                    <div style={{ padding: '0 1rem 1rem' }}>
-                        <div style={{
-                            padding: '0.5rem',
-                            backgroundColor: '#eef2ff',
-                            borderRadius: '0.25rem',
-                            fontSize: '0.875rem'
-                        }}>
-                            <div style={{ fontWeight: 600, color: 'var(--primary-color)' }}>
-                                {employee.name}
+                {showShiftCard && (
+                    <div className="shift-card" title={collapsed ? `${employee.name} · ${shiftDuration}` : undefined}>
+                        <span className="avatar">
+                            {initials(employee.name)}
+                            <span className="avatar__status" />
+                        </span>
+                        <div className="shift-card__info">
+                            <div className="shift-card__name">{employee.name}</div>
+                            <div className="shift-card__time">
+                                Turno activo{shiftDuration && ` · ${shiftDuration}`}
                             </div>
-                            {shiftDuration && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem', color: '#6b7280' }}>
-                                    <Clock size={14} />
-                                    <span>{shiftDuration}</span>
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
 
-                {isExpanded && !employee && user?.role === 'Operator' && !checkingShift && isShiftsEnabled && (
-                    <div style={{ padding: '0 1rem 1rem' }}>
+                {showStartShift && (
+                    <div className="sidebar-cta">
                         <button
-                            onClick={handleStartShiftClick}
-                            className="btn btn-primary"
-                            style={{ width: '100%', fontSize: '0.875rem', padding: '0.5rem' }}
+                            onClick={() => setShowEmployeeSelector(true)}
+                            className="btn btn-primary btn-block"
+                            title={collapsed ? 'Iniciar Turno' : undefined}
                         >
-                            Iniciar Turno
+                            <Play />
+                            <span className="sidebar-cta__label">Iniciar Turno</span>
                         </button>
                     </div>
                 )}
 
                 <nav className="sidebar-nav">
-                    <Link to="/" className={isActive('/')}>
-                        <LayoutDashboard size={28} />
-                        {isExpanded && <span>Inicio</span>}
-                    </Link>
-                    {user?.role === 'Admin' && (
-                        <Link to="/entities" className={isActive('/entities')}>
-                            <Users size={28} />
-                            {isExpanded && <span>Gestión Entidades</span>}
-                        </Link>
+                    <NavItem to="/" icon={LayoutDashboard} label="Inicio" active={pathname === '/'} collapsed={collapsed} />
+                    {isAdmin && (
+                        <NavItem to="/entities" icon={Building2} label="Gestión Entidades" active={pathname === '/entities'} collapsed={collapsed} />
                     )}
-                    <Link to="/suppliers" className={isActive('/suppliers')}>
-                        <ShoppingCart size={28} />
-                        {isExpanded && <span>Proveedores</span>}
-                    </Link>
-                    <Link to="/vencimientos" className={isActive('/vencimientos')}>
-                        <CalendarClock size={28} />
-                        {isExpanded && <span>Vencimientos</span>}
-                    </Link>
-                    <Link to="/reports" className={isActive('/reports')}>
-                        <FileText size={28} />
-                        {isExpanded && <span>Informes</span>}
-                    </Link>
-                    <Link to="/promotions" className={isActive('/promotions')}>
-                        <Tag size={28} />
-                        {isExpanded && <span>Promociones</span>}
-                    </Link>
+                    <NavItem to="/suppliers" icon={ShoppingCart} label="Proveedores" active={pathname === '/suppliers'} collapsed={collapsed} />
+                    <NavItem to="/vencimientos" icon={CalendarClock} label="Vencimientos" active={pathname === '/vencimientos'} collapsed={collapsed} />
+                    <NavItem to="/reports" icon={FileText} label="Informes" active={pathname === '/reports'} collapsed={collapsed} />
+                    <NavItem to="/promotions" icon={Tag} label="Promociones" active={pathname === '/promotions'} collapsed={collapsed} />
 
                     {/* Operator Only Links */}
-                    {user?.role !== 'Admin' && (
-                        <Link to="/cash-register" className={isActive('/cash-register')}>
-                            <DollarSign size={28} />
-                            {isExpanded && <span>Cierre de Caja</span>}
-                        </Link>
+                    {!isAdmin && (
+                        <NavItem to="/cash-register" icon={DollarSign} label="Cierre de Caja" active={pathname === '/cash-register'} collapsed={collapsed} />
                     )}
-                    <Link to="/customer-orders" className={isActive('/customer-orders')}>
-                        <Package size={28} />
-                        {isExpanded && <span>Pedidos Clientes</span>}
-                    </Link>
-                    {user?.role !== 'Admin' && (
-                        <Link to="/maintenance-operator" className={isActive('/maintenance-operator')}>
-                            <CheckSquare size={28} />
-                            {isExpanded && <span>Mantenimiento</span>}
-                        </Link>
+                    <NavItem to="/customer-orders" icon={Package} label="Pedidos Clientes" active={pathname === '/customer-orders'} collapsed={collapsed} />
+                    {!isAdmin && (
+                        <NavItem to="/maintenance-operator" icon={Wrench} label="Mantenimiento" active={pathname === '/maintenance-operator'} collapsed={collapsed} />
                     )}
-                    <Link to="/mi-vet-shop" className={isActive('/mi-vet-shop')}>
-                        <FileText size={28} />
-                        {isExpanded && <span>Mi Vet Shop</span>}
-                    </Link>
+                    <NavItem to="/mi-vet-shop" icon={FileText} label="Mi Vet Shop" active={pathname === '/mi-vet-shop'} collapsed={collapsed} />
 
-                    {/* Web Page Dropdown - Visible for Admin and Operator */}
-                    <div style={{ marginBottom: '0.5rem' }}>
-                        <div
-                            onClick={() => {
-                                if (!isExpanded) {
-                                    navigate('/products');
-                                } else {
-                                    setIsWebDropdownOpen(!isWebDropdownOpen);
-                                }
-                            }}
-                            className={`nav-item ${location.pathname.includes('/design') || location.pathname.includes('/coupons') || location.pathname.includes('/products') ? 'active' : ''}`}
-                            style={{ cursor: 'pointer', justifyContent: isExpanded ? 'space-between' : 'center' }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <LayoutDashboard size={28} />
-                                {isExpanded && <span>Página Web</span>}
-                            </div>
-                            {isExpanded && (isWebDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
-                        </div>
-                        {/* Web - Submenu */}
-                        {isWebDropdownOpen && isExpanded && (
-                            <div style={{ paddingLeft: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                <Link
-                                    to="/products"
-                                    className={location.pathname === '/products' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: location.pathname === '/products' ? 'var(--primary-color)' : '#6b7280',
-                                        fontSize: '0.875rem',
-                                        padding: '0.5rem',
-                                        borderRadius: '0.375rem',
-                                        background: location.pathname === '/products' ? '#eef2ff' : 'transparent',
-                                        display: 'block'
-                                    }}
-                                >
-                                    Productos
-                                </Link>
-                                <Link
-                                    to="/clasificacion"
-                                    className={location.pathname === '/clasificacion' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: location.pathname === '/clasificacion' ? 'var(--primary-color)' : '#6b7280',
-                                        fontSize: '0.875rem',
-                                        padding: '0.5rem',
-                                        borderRadius: '0.375rem',
-                                        background: location.pathname === '/clasificacion' ? '#eef2ff' : 'transparent',
-                                        display: 'block'
-                                    }}
-                                >
-                                    Clasificación
-                                </Link>
-                                {user?.role === 'Admin' && (
-                                    <Link
-                                        to="/sucursales-web"
-                                        className={location.pathname === '/sucursales-web' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                        style={{
-                                            textDecoration: 'none',
-                                            color: location.pathname === '/sucursales-web' ? 'var(--primary-color)' : '#6b7280',
-                                            fontSize: '0.875rem',
-                                            padding: '0.5rem',
-                                            borderRadius: '0.375rem',
-                                            background: location.pathname === '/sucursales-web' ? '#eef2ff' : 'transparent',
-                                            display: 'block'
-                                        }}
-                                    >
-                                        Sucursales
-                                    </Link>
-                                )}
-                                {user?.role === 'Admin' && (
-                                    <Link
-                                        to="/promociones-web"
-                                        className={location.pathname === '/promociones-web' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                        style={{
-                                            textDecoration: 'none',
-                                            color: location.pathname === '/promociones-web' ? 'var(--primary-color)' : '#6b7280',
-                                            fontSize: '0.875rem',
-                                            padding: '0.5rem',
-                                            borderRadius: '0.375rem',
-                                            background: location.pathname === '/promociones-web' ? '#eef2ff' : 'transparent',
-                                            display: 'block'
-                                        }}
-                                    >
-                                        Promociones
-                                    </Link>
-                                )}
-                                {user?.role === 'Admin' && (
-                                    <Link
-                                        to="/design"
-                                        className={location.pathname === '/design' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                        style={{
-                                            textDecoration: 'none',
-                                            color: location.pathname === '/design' ? 'var(--primary-color)' : '#6b7280',
-                                            fontSize: '0.875rem',
-                                            padding: '0.5rem',
-                                            borderRadius: '0.375rem',
-                                            background: location.pathname === '/design' ? '#eef2ff' : 'transparent',
-                                            display: 'block'
-                                        }}
-                                    >
-                                        Diseño
-                                    </Link>
-                                )}
-                                <Link
-                                    to="/coupons"
-                                    className={location.pathname === '/coupons' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                    style={{
-                                        textDecoration: 'none',
-                                        color: location.pathname === '/coupons' ? 'var(--primary-color)' : '#6b7280',
-                                        fontSize: '0.875rem',
-                                        padding: '0.5rem',
-                                        borderRadius: '0.375rem',
-                                        background: location.pathname === '/coupons' ? '#eef2ff' : 'transparent',
-                                        display: 'block'
-                                    }}
-                                >
-                                    Cupones
-                                </Link>
-                                {user?.role === 'Admin' && (
-                                    <Link
-                                        to="/shipping"
-                                        className={location.pathname === '/shipping' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                        style={{
-                                            textDecoration: 'none',
-                                            color: location.pathname === '/shipping' ? 'var(--primary-color)' : '#6b7280',
-                                            fontSize: '0.875rem',
-                                            padding: '0.5rem',
-                                            borderRadius: '0.375rem',
-                                            background: location.pathname === '/shipping' ? '#eef2ff' : 'transparent',
-                                            display: 'block'
-                                        }}
-                                    >
-                                        Envíos
-                                    </Link>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                    <NavGroup
+                        icon={Globe}
+                        label="Página Web"
+                        items={webItems}
+                        pathname={pathname}
+                        collapsed={collapsed}
+                        open={isWebOpen}
+                        onToggle={() => setIsWebOpen(!isWebOpen)}
+                        onCollapsedClick={() => navigate('/products')}
+                    />
 
-                    {user?.role === 'Admin' && (
+                    {isAdmin && (
                         <>
-                            <div style={{ marginBottom: '0.5rem' }}>
-                                <div
-                                    onClick={() => {
-                                        if (!isExpanded) {
-                                            navigate('/admin');
-                                        } else {
-                                            setIsCajaDropdownOpen(!isCajaDropdownOpen);
-                                        }
-                                    }}
-                                    className={`nav-item ${location.pathname.includes('/admin') || location.pathname.includes('/cash-register-log') ? 'active' : ''}`}
-                                    style={{ cursor: 'pointer', justifyContent: isExpanded ? 'space-between' : 'center' }}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <DollarSign size={28} />
-                                        {isExpanded && <span>Caja</span>}
-                                    </div>
-                                    {isExpanded && (isCajaDropdownOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
-                                </div>
-                                {isCajaDropdownOpen && isExpanded && (
-                                    <div style={{ paddingLeft: '2.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-                                        <Link
-                                            to="/admin"
-                                            className={location.pathname === '/admin' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                            style={{
-                                                textDecoration: 'none',
-                                                color: location.pathname === '/admin' ? 'var(--primary-color)' : '#6b7280',
-                                                fontSize: '0.875rem',
-                                                padding: '0.5rem',
-                                                borderRadius: '0.375rem',
-                                                background: location.pathname === '/admin' ? '#eef2ff' : 'transparent',
-                                                display: 'block'
-                                            }}
-                                        >
-                                            Historial de Caja
-                                        </Link>
-                                        <Link
-                                            to="/cash-register-log"
-                                            className={location.pathname === '/cash-register-log' ? 'sub-nav-item active' : 'sub-nav-item'}
-                                            style={{
-                                                textDecoration: 'none',
-                                                color: location.pathname === '/cash-register-log' ? 'var(--primary-color)' : '#6b7280',
-                                                fontSize: '0.875rem',
-                                                padding: '0.5rem',
-                                                borderRadius: '0.375rem',
-                                                background: location.pathname === '/cash-register-log' ? '#eef2ff' : 'transparent',
-                                                display: 'block'
-                                            }}
-                                        >
-                                            Registro de Caja
-                                        </Link>
-                                    </div>
-                                )}
+                            <div className="nav-section-label">
+                                <span>Administración</span>
                             </div>
-
-                            <Link to="/employees" className={isActive('/employees')}>
-                                <Users size={28} />
-                                {isExpanded && <span>Empleados</span>}
-                            </Link>
-                            <Link to="/maintenance" className={isActive('/maintenance')}>
-                                <CheckSquare size={24} />
-                                {isExpanded && <span>Mantenimiento</span>}
-                            </Link>
-                            <Link to="/branches" className={isActive('/branches')}>
-                                <Users size={24} />
-                                {isExpanded && <span>Sucursales</span>}
-                            </Link>
+                            <NavGroup
+                                icon={DollarSign}
+                                label="Caja"
+                                items={cajaItems}
+                                pathname={pathname}
+                                collapsed={collapsed}
+                                open={isCajaOpen}
+                                onToggle={() => setIsCajaOpen(!isCajaOpen)}
+                                onCollapsedClick={() => navigate('/admin')}
+                            />
+                            <NavItem to="/employees" icon={Users} label="Empleados" active={pathname === '/employees'} collapsed={collapsed} />
+                            <NavItem to="/maintenance" icon={Wrench} label="Mantenimiento" active={pathname === '/maintenance'} collapsed={collapsed} />
+                            <NavItem to="/branches" icon={Store} label="Sucursales" active={pathname === '/branches'} collapsed={collapsed} />
                         </>
                     )}
                 </nav>
+
+                {/* Footer con alto fijo: el botón de colapsar queda siempre abajo de todo, en el mismo lugar */}
                 <div className="sidebar-footer">
                     {employee && user?.role === 'Operator' && isShiftsEnabled && (
-                        <button onClick={handleEndShiftClick} className="btn btn-secondary" style={{ width: '100%', marginBottom: '0.5rem' }}>
-                            Finalizar Turno
+                        <button
+                            type="button"
+                            onClick={() => setShowEndShiftModal(true)}
+                            className="nav-item"
+                            title={collapsed ? 'Finalizar Turno' : undefined}
+                        >
+                            <TimerOff />
+                            <span className="nav-item__label">Finalizar Turno</span>
                         </button>
                     )}
-                    <button onClick={handleLogoutClick} className="logout-btn" style={{ justifyContent: isExpanded ? 'flex-start' : 'center' }}>
-                        <LogOut size={24} />
-                        {isExpanded && <span>Cerrar Sesión</span>}
+                    <button
+                        type="button"
+                        onClick={() => setShowLogoutModal(true)}
+                        className="nav-item"
+                        title={collapsed ? 'Cerrar Sesión' : undefined}
+                    >
+                        <LogOut />
+                        <span className="nav-item__label">Cerrar Sesión</span>
+                    </button>
+                    <button
+                        type="button"
+                        className="nav-item sidebar-toggle"
+                        onClick={toggleCollapsed}
+                        aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+                        aria-expanded={!collapsed}
+                        title={collapsed ? 'Expandir menú' : undefined}
+                    >
+                        {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+                        <span className="nav-item__label">Colapsar menú</span>
                     </button>
                 </div>
             </aside>

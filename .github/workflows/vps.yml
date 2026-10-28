@@ -1,14 +1,18 @@
-# Panel en el VPS. El deploy a Azure Static Web Apps sigue en
-# azure-static-web-apps-*.yml y no se toca (se apaga al cortar Azure).
+# Panel en el VPS.
 #
 #   PR                 -> build (lint solo informa: hay errores previos)
-#   manual (dispatch)  -> build con el PANEL_HOST del entorno + deploy al VPS
+#   push a main        -> build con el PANEL_HOST de cada entorno + deploy al VPS
+#                         Entornos: variable del repo DEPLOY_ENVIRONMENTS (JSON),
+#                         por defecto ["production"] (igual que la API y la tienda).
+#   manual (dispatch)  -> lo mismo, en el entorno elegido y desde cualquier rama
 #
 # Acciones fijadas por SHA (docs/DEPENDENCIES.md).
 name: vps
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       entorno:
@@ -45,12 +49,16 @@ jobs:
       - run: npm run build
 
   deploy:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    environment: ${{ inputs.entorno }}
+    strategy:
+      max-parallel: 1
+      matrix:
+        entorno: ${{ fromJSON(github.event_name == 'workflow_dispatch' && format('["{0}"]', inputs.entorno) || vars.DEPLOY_ENVIRONMENTS || '["production"]') }}
+    environment: ${{ matrix.entorno }}
     concurrency:
-      group: deploy-panel-${{ inputs.entorno }}
+      group: deploy-panel-${{ matrix.entorno }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

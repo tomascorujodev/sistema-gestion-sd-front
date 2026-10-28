@@ -125,7 +125,7 @@ export default function PromotionsWeb() {
             <p className="sb-intro">
                 Elegí qué promociones de gestión ve y aprovecha el cliente en la tienda online. La descripción y la vigencia
                 salen de Promociones. Solo baja el precio el &quot;descuento de la tienda&quot;; el reintegro del banco se muestra como información.
-                Las promos de un banco necesitan los BIN de sus tarjetas (primeros 6 a 8 dígitos) para verificar la tarjeta al pagar.
+                Openpay: la promo la elige el cliente al pagar (Openpay no informa la tarjeta, no se verifica). Mercado Pago: las promos de un banco necesitan los BIN (primeros 6 a 8 dígitos de la tarjeta). Las promos de otros medios se muestran en la tienda y el pago se coordina con el vendedor.
             </p>
 
             <ConfirmationModal isOpen={!!quitar} onClose={() => setQuitar(null)} onConfirm={confirmarQuitar} title="Quitar de la web"
@@ -160,7 +160,7 @@ export default function PromotionsWeb() {
                         <div className="sb-field">
                             <label className="input-label" htmlFor="pw-bins">BIN de las tarjetas del banco, separados por coma</label>
                             <textarea id="pw-bins" className="input-field" rows={2} value={form.cardBins ?? ''} onChange={(e) => setForm({ ...form, cardBins: e.target.value })} placeholder="450799, 451766" />
-                            <small className="sb-ayuda">Los primeros 6 a 8 dígitos de cada tarjeta que entra en la promo. Los informa el banco. Obligatorio si cargás un banco.</small>
+                            <small className="sb-ayuda">Los primeros 6 a 8 dígitos de cada tarjeta que entra en la promo. Los informa el banco. Obligatorio con Mercado Pago si cargás un banco; con Openpay no se usan.</small>
                         </div>
                     )}
                     <div className="sb-field">

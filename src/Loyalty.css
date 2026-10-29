@@ -354,13 +354,17 @@
     line-height: 28px;
 }
 
-.loyalty-filters {
-    flex-wrap: wrap;
-}
-
+/* Como en el diseño: buscador y selects en una sola fila, cada select del
+   ancho de su texto (por defecto .form-select ocupa el 100%). */
 .loyalty-filters .search-field,
 .loyalty-search-wide {
-    min-width: 300px;
+    width: 300px;
+}
+
+.loyalty-filters .form-select,
+.loyalty .header-actions .form-select {
+    width: auto;
+    min-width: 150px;
 }
 
 /* Canjes -------------------------------------------------------------------- */
@@ -525,10 +529,15 @@
         padding: 0 var(--space-4);
     }
 
+    .loyalty-filters,
     .loyalty-filters .search-field,
     .loyalty-search-wide {
+        width: 100%;
+    }
+
+    .loyalty-filters .form-select {
+        flex: 1;
         min-width: 0;
-        flex: 1 1 100%;
     }
 }
 

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import {
     LayoutDashboard, Package, ShoppingCart, FileText, Users, LogOut, Tag, DollarSign,
     ChevronDown, Menu, X, CalendarClock, Building2, Globe, Wrench, Store,
-    PanelLeftClose, PanelLeftOpen, TimerOff, Play
+    PanelLeftClose, PanelLeftOpen, TimerOff, Play, Gift
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
@@ -166,6 +166,16 @@ export default function Layout() {
         { to: '/coupons', label: 'Cupones' },
         ...(isAdmin ? [{ to: '/shipping', label: 'Envíos' }] : [])
     ];
+    const fidelizacionItems = [
+        { to: '/fidelizacion', label: 'Mostrador' },
+        { to: '/fidelizacion/clientes', label: 'Clientes' },
+        { to: '/fidelizacion/movimientos', label: 'Movimientos' },
+        { to: '/fidelizacion/canjes', label: 'Canjes' },
+        ...(isAdmin ? [
+            { to: '/fidelizacion/catalogo', label: 'Catálogo' },
+            { to: '/fidelizacion/configuracion', label: 'Configuración' }
+        ] : [])
+    ];
     const cajaItems = [
         { to: '/admin', label: 'Historial de Caja' },
         { to: '/cash-register-log', label: 'Registro de Caja' }
@@ -174,6 +184,7 @@ export default function Layout() {
     // Los grupos arrancan abiertos si la ruta actual está dentro de ellos
     const [isWebOpen, setIsWebOpen] = useState(() => webItems.some(i => i.to === pathname));
     const [isCajaOpen, setIsCajaOpen] = useState(() => cajaItems.some(i => i.to === pathname));
+    const [isFidelizacionOpen, setIsFidelizacionOpen] = useState(() => fidelizacionItems.some(i => i.to === pathname));
 
     const handleConfirmEndShift = async () => {
         setLastEmployee(employee);
@@ -341,6 +352,16 @@ export default function Layout() {
                         <NavItem to="/cash-register" icon={DollarSign} label="Cierre de Caja" active={pathname === '/cash-register'} collapsed={collapsed} />
                     )}
                     <NavItem to="/customer-orders" icon={Package} label="Pedidos Clientes" active={pathname === '/customer-orders'} collapsed={collapsed} />
+                    <NavGroup
+                        icon={Gift}
+                        label="Fidelización"
+                        items={fidelizacionItems}
+                        pathname={pathname}
+                        collapsed={collapsed}
+                        open={isFidelizacionOpen}
+                        onToggle={() => setIsFidelizacionOpen(!isFidelizacionOpen)}
+                        onCollapsedClick={() => navigate('/fidelizacion')}
+                    />
                     {!isAdmin && (
                         <NavItem to="/maintenance-operator" icon={Wrench} label="Mantenimiento" active={pathname === '/maintenance-operator'} collapsed={collapsed} />
                     )}

@@ -27,6 +27,12 @@ import FoodExpirations from './pages/FoodExpirations';
 import ProductClassification from './pages/ProductClassification';
 import StoreBranches from './pages/StoreBranches';
 import PromotionsWeb from './pages/PromotionsWeb';
+import LoyaltyCounter from './pages/LoyaltyCounter';
+import LoyaltyCustomers from './pages/LoyaltyCustomers';
+import LoyaltyMovements from './pages/LoyaltyMovements';
+import LoyaltyRedemptions from './pages/LoyaltyRedemptions';
+import LoyaltyRewards from './pages/LoyaltyRewards';
+import LoyaltySettings from './pages/LoyaltySettings';
 
 function App() {
   return (
@@ -52,6 +58,10 @@ function App() {
               <Route path="/mi-vet-shop" element={<MiVetShopSync />} />
               <Route path="/vencimientos" element={<FoodExpirations />} />
               <Route path="/clasificacion" element={<ProductClassification />} />
+              <Route path="/fidelizacion" element={<LoyaltyCounter />} />
+              <Route path="/fidelizacion/clientes" element={<LoyaltyCustomers />} />
+              <Route path="/fidelizacion/movimientos" element={<LoyaltyMovements />} />
+              <Route path="/fidelizacion/canjes" element={<LoyaltyRedemptions />} />
             </Route>
           </Route>
 
@@ -67,6 +77,8 @@ function App() {
               <Route path="/branches" element={<Branches />} />
               <Route path="/sucursales-web" element={<StoreBranches />} />
               <Route path="/promociones-web" element={<PromotionsWeb />} />
+              <Route path="/fidelizacion/catalogo" element={<LoyaltyRewards />} />
+              <Route path="/fidelizacion/configuracion" element={<LoyaltySettings />} />
             </Route>
           </Route>
 

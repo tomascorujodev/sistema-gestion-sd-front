@@ -52,21 +52,28 @@ export default function LoyaltyMovements() {
     useEffect(() => {
         let vigente = true;
         const desde = PERIODOS.find(p => p.id === periodo).desde();
-        Promise.all([
-            axios.get(`${LOYALTY_API}/movements`, {
-                params: { customerId: customerId || undefined, search: busquedaAplicada || undefined, type: tipo || undefined, branch: sucursal || undefined, from: desde, page, pageSize }
-            }),
-            axios.get(`${LOYALTY_API}/movements/summary`, { params: { branch: sucursal || undefined } }),
-        ]).then(([lista, hoy]) => {
-            if (!vigente) return;
-            setDatos(lista.data);
-            setResumen(hoy.data);
+        axios.get(`${LOYALTY_API}/movements`, {
+            params: { customerId: customerId || undefined, search: busquedaAplicada || undefined, type: tipo || undefined, branch: sucursal || undefined, from: desde, page, pageSize }
+        }).then(({ data }) => {
+            if (vigente) setDatos(data);
         }).catch(() => {
             if (vigente) setDatos({ items: [], totalCount: 0, totalPages: 0 });
         });
         // Una respuesta vieja (filtros ya cambiados) no pisa la nueva.
         return () => { vigente = false; };
     }, [customerId, busquedaAplicada, tipo, sucursal, periodo, page, pageSize, recarga]);
+
+    // El resumen va aparte: si falla, la tabla igual se muestra (y al revés).
+    useEffect(() => {
+        let vigente = true;
+        axios.get(`${LOYALTY_API}/movements/summary`, { params: { branch: sucursal || undefined } })
+            .then(({ data }) => { if (vigente) setResumen(data); })
+            .catch(() => { if (vigente) setResumen(null); });
+        return () => { vigente = false; };
+    }, [sucursal, recarga]);
+
+    // Sin resumen (cargando o con error) las tarjetas quedan con "—": la estructura no cambia.
+    const r = resumen;
 
     const filtro = (setter) => (e) => { setter(e.target.value); setPage(1); };
 
@@ -80,24 +87,23 @@ export default function LoyaltyMovements() {
         <div className="container loyalty">
             <PageHeader breadcrumb={[{ label: 'Fidelización' }, { label: 'Movimientos' }]} title="Movimientos" />
 
-            {resumen && !customerId && (
-                <div className="loyalty-stats">
-                    <div className="card loyalty-stat">
-                        <span className="loyalty-label">Puntos otorgados hoy</span>
-                        <strong className="loyalty-plus">+{puntos(resumen.pointsGiven)}</strong>
-                        <span className="loyalty-muted">{resumen.purchases} compras · {pesos(resumen.purchasesAmount)}</span>
-                    </div>
-                    <div className="card loyalty-stat">
-                        <span className="loyalty-label">Puntos usados hoy</span>
-                        <strong className="loyalty-minus">−{puntos(resumen.pointsUsed)}</strong>
-                        <span className="loyalty-muted">{resumen.discounts} descuentos · {resumen.redemptions} canjes</span>
-                    </div>
-                    <div className="card loyalty-stat">
-                        <span className="loyalty-label">Anulaciones hoy</span>
-                        <strong className={resumen.voids ? 'loyalty-warn' : undefined}>{resumen.voids}</strong>
-                    </div>
+            <div className="loyalty-stats">
+                <div className="card loyalty-stat">
+                    <span className="loyalty-label">Puntos otorgados hoy</span>
+                    <strong className="loyalty-plus">{r ? `+${puntos(r.pointsGiven)}` : '—'}</strong>
+                    <span className="loyalty-muted">{r ? `${r.purchases} compras · ${pesos(r.purchasesAmount)}` : 'Sin datos'}</span>
                 </div>
-            )}
+                <div className="card loyalty-stat">
+                    <span className="loyalty-label">Puntos usados hoy</span>
+                    <strong className="loyalty-minus">{r ? `−${puntos(r.pointsUsed)}` : '—'}</strong>
+                    <span className="loyalty-muted">{r ? `${r.discounts} descuentos · ${r.redemptions} canjes` : 'Sin datos'}</span>
+                </div>
+                <div className="card loyalty-stat">
+                    <span className="loyalty-label">Anulaciones hoy</span>
+                    <strong className={r?.voids ? 'loyalty-warn' : undefined}>{r ? r.voids : '—'}</strong>
+                    <span className="loyalty-muted">{!r ? 'Sin datos' : r.voids ? 'Revisar motivo' : 'Ninguna'}</span>
+                </div>
+            </div>
 
             <div className="table-container">
                 <div className="table-toolbar">

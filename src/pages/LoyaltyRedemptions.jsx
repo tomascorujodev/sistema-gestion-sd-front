@@ -5,9 +5,10 @@ import PageHeader from '../components/PageHeader';
 import Pagination from '../components/Pagination';
 import LoyaltyVoidModal from '../components/LoyaltyVoidModal';
 import LoyaltyBranchSelect from '../components/LoyaltyBranchSelect';
+import TicketInput from '../components/TicketInput';
 import { useAuth } from '../context/AuthContext';
 import useSucursalOperando from '../useSucursalOperando';
-import { LOYALTY_API, puntos, formatearDni, fechaCorta, mensajeDeError, sucursalCorta } from '../loyalty';
+import { LOYALTY_API, puntos, formatearDni, fechaCorta, mensajeDeError, sucursalCorta, ticketCompleto } from '../loyalty';
 import '../Loyalty.css';
 
 const ESTADOS = ['Pendiente', 'Entregado', 'Anulado'];
@@ -87,10 +88,9 @@ export default function LoyaltyRedemptions() {
                 </div>
                 <div className="form-group">
                     <label className="input-label" htmlFor="deliver-ticket">N.º de ticket</label>
-                    <input id="deliver-ticket" className="input-field" placeholder="0006-00000168" autoComplete="off"
-                        value={entrega.ticket} onChange={(e) => setEntrega({ ...entrega, ticket: e.target.value })} />
+                    <TicketInput id="deliver-ticket" value={entrega.ticket} onChange={(ticket) => setEntrega({ ...entrega, ticket })} />
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={enviando || !entrega.codigo || !entrega.ticket}>
+                <button type="submit" className="btn btn-primary" disabled={enviando || !entrega.codigo || !ticketCompleto(entrega.ticket)}>
                     <Check /> Entregar
                 </button>
             </form>

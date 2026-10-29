@@ -7,11 +7,12 @@ import LoyaltyCustomerModal from '../components/LoyaltyCustomerModal';
 import LoyaltyVoidModal from '../components/LoyaltyVoidModal';
 import LoyaltyReceipt from '../components/LoyaltyReceipt';
 import LoyaltyBranchSelect from '../components/LoyaltyBranchSelect';
+import TicketInput from '../components/TicketInput';
 import { useAuth } from '../context/AuthContext';
 import useSucursalOperando from '../useSucursalOperando';
 import {
     LOYALTY_API, TIPOS, puntos, conSigno, pesos, formatearDni, iniciales, fechaCorta,
-    mensajeDeError, nuevaClave, sucursalCorta
+    mensajeDeError, nuevaClave, sucursalCorta, ticketCompleto
 } from '../loyalty';
 import '../Loyalty.css';
 
@@ -177,7 +178,7 @@ export default function LoyaltyCounter() {
     const saldo = cliente?.pointsBalance ?? 0;
     const puntosAUsar = Number(form.puntos) || 0;
     const premioElegido = premios.find(p => String(p.id) === String(form.premioId));
-    const puedeConfirmar = !!form.ticket && (
+    const puedeConfirmar = ticketCompleto(form.ticket) && (
         (tab === 'compra' && cotizacion?.puntos > 0) ||
         (tab === 'usar' && puntosAUsar > 0 && puntosAUsar <= saldo) ||
         (tab === 'canjear' && premioElegido && premioElegido.pointsCost <= saldo) ||
@@ -321,7 +322,7 @@ export default function LoyaltyCounter() {
                                         )}
                                         <div className="form-group">
                                             <label className="input-label" htmlFor="op-ticket">N.º de ticket</label>
-                                            <input id="op-ticket" className="input-field" value={form.ticket ?? ''} onChange={set('ticket')} placeholder="0006-00000168" autoComplete="off" />
+                                            <TicketInput id="op-ticket" value={form.ticket} onChange={(ticket) => setForm({ ...form, ticket })} />
                                         </div>
                                         {tab === 'compra' && (
                                             <div className="form-group">

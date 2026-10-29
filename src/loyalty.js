@@ -48,6 +48,14 @@ export function diaLocal(offsetDias = 0) {
 export const mensajeDeError = (err, porDefecto = 'No se pudo completar la operación.') =>
     typeof err?.response?.data === 'string' && err.response.data ? err.response.data : porDefecto;
 
+/** Ticket de la caja mientras se tipea: hasta 12 números y el guion después de los 4 primeros. */
+export function formatearTicket(valor = '') {
+    const digitos = valor.replace(/\D/g, '').slice(0, 12);
+    return digitos.length > 4 ? `${digitos.slice(0, 4)}-${digitos.slice(4)}` : digitos;
+}
+
+export const ticketCompleto = (valor) => /^\d{4}-\d{8}$/.test(valor ?? '');
+
 /** Una clave por operación: un doble clic o un reintento no la registra dos veces. */
 export const nuevaClave = () => crypto.randomUUID();
 

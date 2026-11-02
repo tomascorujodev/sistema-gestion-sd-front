@@ -248,7 +248,8 @@ export const AuthProvider = ({ children }) => {
             checkingShift,
             shiftAutoClosed,
             setShiftAutoClosed,
-            isShiftsEnabled
+            isShiftsEnabled,
+            setIsShiftsEnabled
         }}>
             {children}
         </AuthContext.Provider>

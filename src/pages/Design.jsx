@@ -1,83 +1,62 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Save, Plus, Trash2, Power, Clock } from 'lucide-react';
 import CloudinaryUpload from '../components/CloudinaryUpload';
 import ConfirmationModal from '../components/ConfirmationModal';
+import { useAuth } from '../context/AuthContext';
 import '../Design.css';
 
+// axios lleva el token de sesión (AuthContext); con fetch() estas llamadas
+// salían sin login y el backend (solo Admin) las rechazaba con 401.
+const API = `${import.meta.env.VITE_API_URL}/api/site-config`;
+
 export default function Design() {
-    const [config, setConfig] = useState({
-        primaryColor: '#E11D48',
-        secondaryColor: '#000000',
-        cloudinaryCloudName: '',
-        cloudinaryUploadPreset: '',
-        isStoreEnabled: true,
-        isShiftsEnabled: true,
-        theme: 'Dark'
-    });
+    const { setIsShiftsEnabled } = useAuth();
+    const [config, setConfig] = useState(null);
     const [carouselImages, setCarouselImages] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState(null);
     const [confirmModal, setConfirmModal] = useState({ show: false, action: null });
 
     useEffect(() => {
-        fetchConfig();
-        fetchImages();
+        Promise.all([fetchConfig(), fetchImages()]).finally(() => setLoading(false));
     }, []);
 
     const fetchConfig = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/admin`);
-            if (res.ok) {
-                const data = await res.json();
-                setConfig({
-                    primaryColor: data.primaryColor || '#E11D48',
-                    secondaryColor: data.secondaryColor || '#000000',
-                    cloudinaryCloudName: data.cloudinaryCloudName || '',
-                    cloudinaryUploadPreset: data.cloudinaryUploadPreset || '',
-                    isStoreEnabled: data.isStoreEnabled !== undefined ? data.isStoreEnabled : true,
-                    isShiftsEnabled: data.isShiftsEnabled !== undefined ? data.isShiftsEnabled : true,
-                    theme: data.theme || 'Dark'
-                });
-            }
+            const { data } = await axios.get(`${API}/admin`);
+            setConfig({
+                isStoreEnabled: data.isStoreEnabled ?? true,
+                isShiftsEnabled: data.isShiftsEnabled ?? true
+            });
         } catch (error) {
             console.error('Error fetching config:', error);
+            setLoadError(true);
         }
     };
 
     const fetchImages = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/images`);
-            if (res.ok) {
-                const data = await res.json();
-                setCarouselImages(data);
-            }
-            setLoading(false);
+            const { data } = await axios.get(`${API}/images`);
+            setCarouselImages(data);
         } catch (error) {
             console.error('Error fetching images:', error);
-            setLoading(false);
         }
     };
 
     const handleConfigChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const { name, checked } = e.target;
 
-        if (name === 'isStoreEnabled') {
-            if (!checked) {
-                // If turning off, ask for confirmation
-                setConfirmModal({
-                    show: true,
-                    action: () => {
-                        setConfig(prev => ({ ...prev, [name]: false }));
-                    }
-                });
-            } else {
-                setConfig(prev => ({ ...prev, [name]: true }));
-            }
-        } else if (type === 'checkbox') {
-            setConfig(prev => ({ ...prev, [name]: checked }));
+        if (name === 'isStoreEnabled' && !checked) {
+            // Apagar la tienda pide confirmación
+            setConfirmModal({
+                show: true,
+                action: () => setConfig(prev => ({ ...prev, isStoreEnabled: false }))
+            });
         } else {
-            setConfig(prev => ({ ...prev, [name]: value }));
+            setConfig(prev => ({ ...prev, [name]: checked }));
         }
     };
 
@@ -85,18 +64,21 @@ export default function Design() {
         e.preventDefault();
         setSaving(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(config)
+            // El backend actualiza solo los campos enviados: no pisa la config de Envíos.
+            await axios.put(API, {
+                isStoreEnabled: config.isStoreEnabled,
+                isShiftsEnabled: config.isShiftsEnabled
             });
-            if (res.ok) {
-                setMessage({ type: 'success', text: 'Configuración guardada correctamente' });
-            } else {
-                setMessage({ type: 'error', text: 'Error al guardar la configuración' });
-            }
+            setIsShiftsEnabled(config.isShiftsEnabled);
+            setMessage({ type: 'success', text: 'Configuración guardada correctamente' });
         } catch (error) {
-            setMessage({ type: 'error', text: 'Error de red' });
+            const status = error.response?.status;
+            setMessage({
+                type: 'error',
+                text: status === 401 || status === 403
+                    ? 'No tenés permiso: iniciá sesión como Admin.'
+                    : 'Error al guardar la configuración'
+            });
         } finally {
             setSaving(false);
             setTimeout(() => setMessage(null), 3000);
@@ -113,35 +95,24 @@ export default function Design() {
                 isActive: true,
                 order: carouselImages.length
             };
-
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/images`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newImage)
-            });
-
-            if (res.ok) {
-                const savedImage = await res.json();
-                setCarouselImages([...carouselImages, savedImage]);
-                setMessage({ type: 'success', text: 'Imagen agregada correctamente' });
-            }
+            const { data: savedImage } = await axios.post(`${API}/images`, newImage);
+            setCarouselImages([...carouselImages, savedImage]);
+            setMessage({ type: 'success', text: 'Imagen agregada correctamente' });
         } catch (error) {
             console.error('Error adding image:', error);
+            setMessage({ type: 'error', text: 'Error al agregar la imagen' });
         }
     };
 
     const handleDeleteImage = async (id) => {
         if (!window.confirm('¿Estás seguro de eliminar esta imagen?')) return;
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/images/${id}`, {
-                method: 'DELETE'
-            });
-            if (res.ok) {
-                setCarouselImages(carouselImages.filter(img => img.id !== id));
-                setMessage({ type: 'success', text: 'Imagen eliminada' });
-            }
+            await axios.delete(`${API}/images/${id}`);
+            setCarouselImages(carouselImages.filter(img => img.id !== id));
+            setMessage({ type: 'success', text: 'Imagen eliminada' });
         } catch (error) {
             console.error('Error deleting image:', error);
+            setMessage({ type: 'error', text: 'Error al eliminar la imagen' });
         }
     };
 
@@ -153,17 +124,20 @@ export default function Design() {
         setCarouselImages(carouselImages.map(img => img.id === id ? updatedImage : img));
 
         try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/site-config/images/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedImage)
-            });
+            await axios.put(`${API}/images/${id}`, updatedImage);
         } catch (error) {
             console.error('Error updating image:', error);
         }
     };
 
     if (loading) return <div className="loading-container">Cargando...</div>;
+    if (loadError || !config) return (
+        <div className="container">
+            <div style={{ padding: '1rem', borderRadius: '0.375rem', backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca' }}>
+                No se pudo cargar la configuración. Verificá que iniciaste sesión como Admin y recargá la página.
+            </div>
+        </div>
+    );
 
     return (
         <div className="container">
@@ -175,7 +149,7 @@ export default function Design() {
                     setConfirmModal({ show: false, action: null });
                 }}
                 title="Deshabilitar Sitio Web"
-                message="¿Estás seguro de que quieres deshabilitar el sitio web? Los clientes verán una página de mantenimiento y no podrán realizar compras."
+                message="¿Estás seguro de que quieres deshabilitar el sitio web? Los clientes verán un aviso de «volvemos pronto» y no podrán realizar compras. Pueden seguir consultando sus pedidos."
                 confirmText="Deshabilitar"
                 isDestructive={true}
             />
@@ -267,21 +241,9 @@ export default function Design() {
                             </label>
                         </div>
 
-                        <div className="input-group">
-                            <label className="input-label">Tema del Sitio</label>
-                            <select
-                                name="theme"
-                                value={config.theme || 'Dark'}
-                                onChange={handleConfigChange}
-                                className="input-field"
-                                style={{ width: '100%', padding: '0.75rem' }}
-                            >
-                                <option value="Dark">Modo Oscuro (Default)</option>
-                                <option value="Light">Modo Luz (Blanco/Bordó)</option>
-                                <option value="Christmas">Modo Navidad</option>
-                                <option value="Anniversary">Modo Aniversario (Dorado)</option>
-                            </select>
-                        </div>
+                        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
+                            La tienda web usa un diseño fijo: tema y colores ya no se configuran desde acá.
+                        </p>
 
                         <button type="submit" className="btn btn-primary" disabled={saving} style={{ width: '100%', marginTop: '1rem' }}>
                             {saving ? 'Guardando...' : 'Guardar Cambios'}

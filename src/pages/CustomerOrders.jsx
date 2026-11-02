@@ -4,6 +4,10 @@ import { Plus, Trash2, Eye, Package, DollarSign, CheckCircle, Check, Store, X } 
 import '../Products.css';
 import { useAuth } from '../context/AuthContext';
 
+// Estados que se pueden filtrar. "Esperando pago" y "Pago vencido" los pone la tienda web (Openpay), no se eligen a mano.
+const ESTADOS_FILTRO = ['Pendiente', 'En Preparación', 'Listo', 'Entregado', 'Cancelado', 'Esperando pago', 'Pago vencido'];
+const ESTADOS_PAGO_WEB = ['Esperando pago', 'Pago vencido'];
+
 export default function CustomerOrders() {
     const { user } = useAuth();
     const [orders, setOrders] = useState([]);
@@ -112,6 +116,7 @@ export default function CustomerOrders() {
     };
 
     const handleStatusChange = async (id, newStatus) => {
+        if (newStatus === 'Cancelado' && !window.confirm('¿Cancelar este pedido? Se anulan los puntos de fidelización que haya generado.')) return;
         try {
             await axios.put(`${import.meta.env.VITE_API_URL}/api/customerorders/${id}/status`, `"${newStatus}"`, {
                 headers: { 'Content-Type': 'application/json' }
@@ -207,6 +212,9 @@ export default function CustomerOrders() {
             case 'En Preparación': return '#3b82f6';
             case 'Listo': return '#10b981';
             case 'Entregado': return '#6b7280';
+            case 'Cancelado': return '#dc2626';
+            case 'Esperando pago': return '#d97706';
+            case 'Pago vencido': return '#9ca3af';
             default: return '#6b7280';
         }
     };
@@ -226,36 +234,15 @@ export default function CustomerOrders() {
             <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600, color: '#4b5563', marginRight: '0.5rem' }}>Estado:</span>
-                    <button
-                        className={`btn ${filterStatus === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => setFilterStatus('all')}
-                    >
-                        Todos
-                    </button>
-                    <button
-                        className={`btn ${filterStatus === 'Pendiente' ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => setFilterStatus('Pendiente')}
-                    >
-                        Pendiente
-                    </button>
-                    <button
-                        className={`btn ${filterStatus === 'En Preparación' ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => setFilterStatus('En Preparación')}
-                    >
-                        En Preparación
-                    </button>
-                    <button
-                        className={`btn ${filterStatus === 'Listo' ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => setFilterStatus('Listo')}
-                    >
-                        Listo
-                    </button>
-                    <button
-                        className={`btn ${filterStatus === 'Entregado' ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => setFilterStatus('Entregado')}
-                    >
-                        Entregado
-                    </button>
+                    {[['all', 'Todos'], ...ESTADOS_FILTRO.map(e => [e, e])].map(([valor, texto]) => (
+                        <button
+                            key={valor}
+                            className={`btn ${filterStatus === valor ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => setFilterStatus(valor)}
+                        >
+                            {texto}
+                        </button>
+                    ))}
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -374,6 +361,10 @@ export default function CustomerOrders() {
                                         <option value="En Preparación">En Preparación</option>
                                         <option value="Listo">Listo</option>
                                         <option value="Entregado">Entregado</option>
+                                        <option value="Cancelado">Cancelado</option>
+                                        {ESTADOS_PAGO_WEB.includes(order.status) && (
+                                            <option value={order.status} disabled>{order.status}</option>
+                                        )}
                                     </select>
                                 </td>
                                 <td>

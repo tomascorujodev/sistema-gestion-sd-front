@@ -161,6 +161,7 @@ export default function Layout() {
         ...(isAdmin ? [
             { to: '/sucursales-web', label: 'Sucursales' },
             { to: '/promociones-web', label: 'Promociones' },
+            { to: '/secciones-web', label: 'Secciones' },
             { to: '/design', label: 'Diseño' }
         ] : []),
         { to: '/coupons', label: 'Cupones' },

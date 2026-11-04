@@ -27,6 +27,8 @@ import FoodExpirations from './pages/FoodExpirations';
 import ProductClassification from './pages/ProductClassification';
 import StoreBranches from './pages/StoreBranches';
 import PromotionsWeb from './pages/PromotionsWeb';
+import StoreSections from './pages/StoreSections';
+import StoreSectionEdit from './pages/StoreSectionEdit';
 import LoyaltyCounter from './pages/LoyaltyCounter';
 import LoyaltyCustomers from './pages/LoyaltyCustomers';
 import LoyaltyMovements from './pages/LoyaltyMovements';
@@ -77,6 +79,8 @@ function App() {
               <Route path="/branches" element={<Branches />} />
               <Route path="/sucursales-web" element={<StoreBranches />} />
               <Route path="/promociones-web" element={<PromotionsWeb />} />
+              <Route path="/secciones-web" element={<StoreSections />} />
+              <Route path="/secciones-web/:id" element={<StoreSectionEdit />} />
               <Route path="/fidelizacion/catalogo" element={<LoyaltyRewards />} />
               <Route path="/fidelizacion/configuracion" element={<LoyaltySettings />} />
             </Route>
